@@ -29,7 +29,7 @@ function Index() {
             Future Solutions Digital Notes
           </p>
           <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
-            Shift<span className="text-primary">Notes</span>
+            Digital<span className="text-primary">Notes</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
             Handwritten shift handoff notes — written on the iPad, instantly visible
