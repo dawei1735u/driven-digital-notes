@@ -24,10 +24,12 @@ function Index() {
         <nav className="absolute right-6 top-6 flex gap-4 text-xs uppercase tracking-[0.2em] text-muted-foreground">
           <Link to="/admin" className="hover:text-foreground">Admin</Link>
         </nav>
-        <div className="mb-12 text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-            Future Solutions Digital Notes
-          </p>
+        <div className="mb-12 flex flex-col items-center text-center">
+          <img
+            src={daveLogo}
+            alt="Design Ambition Vision Excellence monogram"
+            className="mb-6 h-24 w-24 object-contain"
+          />
           <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
             Digital<span className="text-primary">Notes</span>
           </h1>
@@ -74,12 +76,7 @@ function Index() {
         </div>
 
         <footer className="mt-20 flex w-full flex-col items-center text-center">
-          <img
-            src={daveLogo}
-            alt="Design Ambition Vision Excellence monogram"
-            className="h-24 w-24 object-contain"
-          />
-          <p className="mt-4 text-sm font-semibold uppercase tracking-[0.35em] text-foreground md:text-base">
+          <p className="text-sm font-semibold uppercase tracking-[0.35em] text-foreground md:text-base">
             Design <span className="text-primary">.</span> Ambition{" "}
             <span className="text-primary">.</span> Vision{" "}
             <span className="text-primary">.</span> Excellence
