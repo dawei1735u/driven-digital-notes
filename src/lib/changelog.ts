@@ -8,6 +8,38 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.8.0",
+    date: "2026-05-15",
+    title: "Rebrand to Future Solutions Digital Notes",
+    sections: [
+      {
+        heading: "Changed",
+        items: [
+          "Renamed product on the landing page from 'ShiftNotes' to 'DigitalNotes' — updated the H1 in src/routes/index.tsx so 'Digital' renders in foreground and 'Notes' in primary accent.",
+          "Replaced the old 'Digital Doorman Shift Handoff' eyebrow with 'Future Solutions Digital Notes' and then removed the eyebrow entirely once the logo took over as the primary brand mark in the header.",
+          "Moved the D.A.V.E. monogram (src/assets/dave-logo.png) from the footer into the hero header, stacked above the DigitalNotes wordmark with mb-6 spacing, so the brand identity reads top-down: logo → wordmark → CTAs.",
+          "Removed the marketing subtitle ('Handwritten shift handoff notes — written on the iPad, instantly visible on the lobby monitor.') to tighten the hero now that the logo carries the brand weight.",
+          "Simplified the right-hand CTA card on the home page: 'Monitor Board' + 'Live shift handoff dashboard' collapsed to a single 'Dashboard' label so the two entry points (Write a Note / Dashboard) read symmetrically.",
+          "Footer keeps only the 'Design . Ambition . Vision . Excellence' tagline now that the monogram has moved up.",
+        ],
+      },
+      {
+        heading: "Implementation notes",
+        items: [
+          "All edits are presentation-only and confined to src/routes/index.tsx — no route, server function, RLS policy, or schema change. The /ipad and /monitor flows, auth guard, and admin panel are untouched.",
+          "The logo continues to import as an ES module (import daveLogo from '@/assets/dave-logo.png') so Vite fingerprints and inlines it; no <img> path strings or public/ copies were introduced.",
+          "Hero container switched to flex flex-col items-center text-center to vertically stack logo + H1 cleanly without the previous mx-auto paragraph constraints.",
+        ],
+      },
+      {
+        heading: "Branching",
+        items: [
+          "1.8.0 lands on the GitHub default branch via Lovable's two-way sync — every edit in this release pushed automatically as Lovable saved the files. To stage separately, branch release/1.8 from main in GitHub and cherry-pick; Lovable itself can't run git commands, but the connected repo already has the full commit history for this release.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.7.2",
     date: "2026-05-15",
     title: "Backup status panel & history chart",
