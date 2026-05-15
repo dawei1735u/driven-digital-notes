@@ -1,0 +1,284 @@
+export type ChangelogSection = { heading: string; items: string[] };
+export type ChangelogEntry = {
+  version: string;
+  date: string;
+  title?: string;
+  sections: ChangelogSection[];
+};
+
+export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "1.7.2",
+    date: "2026-05-15",
+    title: "Backup status panel & history chart",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Backup status panel on /admin — total notes in DB, latest note timestamp with a Healthy/Stale/Inactive badge, approved-user count, and note-images storage object count + latest upload. Auto-refreshes every 60s with a manual Refresh button.",
+          "Backup activity history chart on /admin — 7d/30d toggleable Recharts ComposedChart with per-day bars for notes created and images uploaded plus two trend lines showing end-of-day 'hours stale' (how long since the most recent write at the close of each day). Lower is fresher.",
+        ],
+      },
+      {
+        heading: "Changed",
+        items: [
+          "Added two admin-gated server functions in src/lib/admin.functions.ts: adminGetBackupStatus (parallel notes count + latest/oldest + allowed-users count + storage list via the admin client because RLS blocks the user-scoped client from listing storage.objects) and adminGetBackupHistory ({ days: 7|30 } → bins notes.created_at and storage objects into per-UTC-day buckets, then walks the window carrying running lastNoteSeen / lastImageSeen so each row's noteHoursStale / imageHoursStale reflects staleness at end-of-day).",
+          "Both functions go through assertAdmin(supabase, userId) (has_role(auth.uid(), 'admin')) before reading anything.",
+          "src/routes/_authenticated/admin.tsx wires both functions through useServerFn + useQuery; the history range lives in useState<7|30>(7) and is keyed into the query so toggling refetches. New <BackupStatus> and <BackupHistoryChart> cards render between the stats grid and the approved-users table.",
+        ],
+      },
+      {
+        heading: "Implementation notes",
+        items: [
+          "Chart uses ComposedChart with dual YAxis — left for write-count bars (hsl(var(--primary)) and hsl(var(--muted-foreground))), right for hours-stale lines (amber #f59e0b solid for notes, red #ef4444 dashed for images) so they stay distinguishable in light/dark without colliding with theme tokens.",
+          "Tooltip is custom-formatted to render lastNoteAt / lastImageAt ISO strings as locale times by reading them off the Recharts payload row.",
+          "Day labels switch format with the range — short weekday for 7d, MM-DD for 30d — to keep the X-axis readable at both widths.",
+          "Storage listing is capped at 1000 objects (Supabase JS default max). Sorted asc, so even if the cap is hit the most-recent days stay accurate; only the oldest tail of a long window would under-count.",
+        ],
+      },
+      {
+        heading: "Branching",
+        items: [
+          "1.7.2 lands on the GitHub default branch via Lovable's two-way sync. To stage separately, branch release/1.7 from main in GitHub and cherry-pick — Lovable can't run git itself.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.7.1",
+    date: "2026-05-15",
+    title: "Pixel eraser tool",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Eraser tool on /ipad — new Pen/Eraser toggle plus a separate 'Clear all' button so doormen can rub out a single character without wiping the whole note.",
+        ],
+      },
+      {
+        heading: "Changed",
+        items: [
+          "HandwritingCanvas tracks the active tool via toolRef and exposes setTool/getTool on its imperative handle. The eraser strokes paint over with the sticky-note background color (#fff2a8) at 18*dpr width — not destination-out — so the exported PNG stays opaque and round-trips cleanly through toBlob/loadFromUrl in edit mode.",
+          "/ipad toolbar shows Pen, Eraser, and Clear all side-by-side; the active tool button uses the primary background and aria-pressed for accessibility. Clear all got a Trash2 icon to distinguish it from the eraser.",
+        ],
+      },
+      {
+        heading: "Branching",
+        items: [
+          "1.7.1 lands on the GitHub default branch via Lovable's two-way sync. To stage separately, branch release/1.7 from main in GitHub and cherry-pick — Lovable can't run git itself.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.7.0",
+    date: "2026-05-15",
+    title: "Editable notes & doorman roster",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Edit a saved note's metadata from /monitor — new pencil icon on each sticky opens a dialog to change written by, shift, apartment, category, display date, and status. Changes save in one update and appear instantly without waiting for the poll.",
+          "Redraw a note's handwriting — the edit dialog has a 'Redraw on iPad' link that opens /ipad?edit=<id>; the existing image is loaded into the canvas via a new HandwritingCanvas.loadFromUrl method, sidebar fields are pre-filled, and Save uploads a new PNG and updates the same notes row instead of inserting.",
+          "Approved doormen roster — added a display_name column to allowed_users and seeded the 7 active doormen (Benjie Solatorre, Carlos Garcia, Dave Edghill, Luis Villafane, Mike Kerr, Williams Landestoy, Vita Iacovone). Vita is live with vitaiacovone@hotmail.com; the others use pending-<slug>@shiftnotes.local placeholders until real emails arrive.",
+          "/ipad auto-fills 'Written by' with the signed-in doorman's display name and locks the field, with a 'Auto-filled from your approved doorman account' hint. Edit mode skips this so the original author is preserved.",
+        ],
+      },
+      {
+        heading: "Changed",
+        items: [
+          "HandwritingCanvas now exposes loadFromUrl alongside clear/toBlob/isEmpty so signed bucket URLs can be drawn back into the canvas at native resolution.",
+          "/ipad header title and save-button label switch between 'Write'/'Save Note' and 'Edit'/'Save Changes' based on the ?edit search param.",
+          "NoteCard accepts an optional onEdit callback; the pencil button only renders when the prop is supplied.",
+        ],
+      },
+      {
+        heading: "Database",
+        items: [
+          "Added display_name to allowed_users and a new allowed_users_select_self policy so a signed-in user can read only their own allowlist row by case-insensitive email match. Admin-manage policy is unchanged.",
+          "Doorman seed is idempotent (ON CONFLICT (email) DO UPDATE SET display_name = EXCLUDED.display_name) so re-running it just refreshes display names.",
+        ],
+      },
+      {
+        heading: "Branching",
+        items: [
+          "1.7.0 lands on the GitHub default branch via Lovable's two-way sync. To stage it separately, branch release/1.7 from main in GitHub and cherry-pick — Lovable can't run git itself.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.6.0",
+    date: "2026-05-15",
+    title: "Locked-down capture, monitor & storage",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "/ipad and /monitor now live behind authentication — only signed-in, approved users can open them.",
+          "Dedicated 'Sign in to use iPad/Monitor' screen on /login when an unauthenticated visitor hits a protected page; after sign-in they're returned to the page they wanted.",
+          "Sign out button in the /ipad and /monitor headers that ends the session and returns to the landing page.",
+        ],
+      },
+      {
+        heading: "Changed",
+        items: [
+          "Route files moved under the _authenticated layout (src/routes/_authenticated/ipad.tsx and monitor.tsx) so the access guard runs before the page renders — no flash of protected content.",
+          "Login banner now distinguishes signed-out, sign-in-required, and not-approved states with the right copy for each.",
+        ],
+      },
+      {
+        heading: "Fixed",
+        items: [
+          "Crash on /monitor ('Cannot convert object to primitive value') caused by concatenating TanStack Router's parsed search object with a string. The redirect now uses location.href, which is already a string.",
+        ],
+      },
+      {
+        heading: "Security",
+        items: [
+          "note-images storage bucket is no longer public. New RLS policies require authenticated + allowlisted users for SELECT and INSERT, admins-only for UPDATE/DELETE, and there is no LIST policy so objects can't be enumerated.",
+          "Combined with the route guard, handwritten note images are visible only to invited users — direct object URLs return 403 for everyone else.",
+        ],
+      },
+      {
+        heading: "Branching",
+        items: [
+          "Released to the connected GitHub default branch via Lovable's two-way sync. To stage 1.6.0 separately, branch release/1.6 from main in GitHub and cherry-pick — Lovable can't run git itself.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.5.0",
+    date: "2026-05-15",
+    title: "Invite-only access & private changelog",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Email allowlist (allowed_users table) — only emails the admin invites can sign in.",
+          "Admin panel section to invite a user (email + optional note) and revoke access in one click.",
+          "Server-side access guard: every authenticated route revalidates the user against the allowlist on each navigation and signs out anyone who is no longer approved.",
+          "Friendly 'not approved' message on /login when access is denied or revoked.",
+          "Footer monogram (D.A.V.E.) and 'Design . Ambition . Vision . Excellence' tagline on the home page.",
+        ],
+      },
+      {
+        heading: "Changed",
+        items: [
+          "/changelog moved behind admin authentication — release notes are no longer public.",
+          "Public homepage nav cleaned up; the Changelog link is removed.",
+        ],
+      },
+      {
+        heading: "Security",
+        items: [
+          "allowed_users table is RLS-protected: only admins can read or modify it.",
+          "Allowlist check runs through a SECURITY DEFINER function (is_user_allowed) with EXECUTE revoked from anon/authenticated; only the server (service role) can call it.",
+          "Bootstrap path preserved: when no admin exists, the first signed-in user can still claim admin and become the gatekeeper.",
+          "Email values are normalized (lowercased, trimmed) on insert/update to prevent bypass via casing.",
+        ],
+      },
+      {
+        heading: "Server functions",
+        items: [
+          "getMyAccessStatus — returns { allowed } for the current user; called by the route guard.",
+          "adminListAllowedUsers — admin-only list of invited emails.",
+          "adminInviteUser — admin-only upsert into allowed_users (Zod-validated email + optional note).",
+          "adminRevokeUser — admin-only delete from allowed_users.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.4.0",
+    date: "2026-05-15",
+    title: "Admin panel & changelog",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Auth-protected /admin panel with stats, filters, and per-row management.",
+          "Bulk actions: resolve, reopen, and delete multiple notes in one click.",
+          "Stats dashboard: totals, open vs resolved, today's count, and breakdowns by shift, category, and day.",
+          "Email/password and Google sign-in via /login.",
+          "Role system (admin/moderator/user) with a secure has_role() check used by RLS.",
+          "First-admin self-claim flow when no admin exists yet.",
+          "Public /changelog page rendering this file plus a CHANGELOG.md in the repo.",
+        ],
+      },
+      {
+        heading: "Security",
+        items: [
+          "Notes can now only be deleted by users with the admin role.",
+          "user_roles table protected by RLS: users can read their own roles; only admins can manage them.",
+          "Role helpers are SECURITY DEFINER and limited to authenticated callers.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.3.0",
+    date: "2026-05-15",
+    title: "Monitor: search, filters, status",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Status filter on the monitor (open / resolved / all), defaulting to open.",
+          "Apartment / unit text search to quickly find a specific note.",
+          "Quick filter chips for Shift and Category, with a one-click clear.",
+          "Counts now show filtered/total when any filter is active.",
+        ],
+      },
+      {
+        heading: "Changed",
+        items: [
+          "Resolving a note while viewing 'open' removes it from the board immediately; in 'all' or 'resolved' it just updates status.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.2.0",
+    date: "2026-05-15",
+    title: "Monitor navigation",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Large 'Return to Main Screen' button on the monitor for quick navigation back to the home/iPad flow.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.1.0",
+    date: "2026-05-15",
+    title: "Pinch-to-resize notes",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Pinch gestures on the monitor smoothly resize notes, syncing with the existing size setting.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.0.0",
+    date: "2026-05-01",
+    title: "Initial release",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "iPad note capture with Apple Pencil handwriting canvas.",
+          "Lobby monitor board showing the live shift handoff.",
+          "Note metadata: written_by, shift, apartment, category, status.",
+          "Image storage in the note-images bucket and AI transcription field.",
+        ],
+      },
+    ],
+  },
+];
