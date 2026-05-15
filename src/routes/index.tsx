@@ -61,10 +61,7 @@ function Index() {
             style={{ transform: "rotate(0.8deg)" }}
           >
             <Monitor className="mb-6 h-10 w-10" />
-            <h2 className="text-3xl font-bold">Monitor Board</h2>
-            <p className="mt-2 text-white/70">
-              Live shift handoff dashboard
-            </p>
+            <h2 className="text-3xl font-bold">Dashboard</h2>
             <div className="mt-8 inline-flex items-center text-sm font-semibold">
               Open /monitor →
             </div>
