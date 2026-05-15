@@ -26,7 +26,7 @@ function Index() {
         </nav>
         <div className="mb-12 text-center">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-            Digital Doorman
+            Future Solutions Digital Notes
           </p>
           <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
             Shift<span className="text-primary">Notes</span>
