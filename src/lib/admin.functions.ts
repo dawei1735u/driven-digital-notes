@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 /** Returns whether the current user is an admin (and basic role list). */
 export const getMyAdminContext = createServerFn({ method: "GET" })
@@ -108,6 +107,7 @@ export const claimFirstAdmin = createServerFn({ method: "POST" })
     // Bootstrap insert must bypass RLS (the user_roles_admin_manage policy
     // only lets existing admins insert). Safe because we just verified that
     // no admin exists yet.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await (supabaseAdmin as any)
       .from("user_roles")
       .insert({ user_id: userId, role: "admin" });
@@ -311,6 +311,7 @@ export const adminGetBackupStatus = createServerFn({ method: "GET" })
     let imageCount: number | null = null;
     let latestImageAt: string | null = null;
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: objects } = await (supabaseAdmin as any).storage
         .from("note-images")
         .list("", { limit: 1000, sortBy: { column: "created_at", order: "desc" } });
@@ -374,6 +375,7 @@ export const adminGetBackupHistory = createServerFn({ method: "POST" })
 
     let storageObjects: Array<{ created_at?: string | null }> = [];
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: objs } = await (supabaseAdmin as any).storage
         .from("note-images")
         .list("", { limit: 1000, sortBy: { column: "created_at", order: "asc" } });
