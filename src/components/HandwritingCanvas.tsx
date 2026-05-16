@@ -10,6 +10,9 @@ export interface HandwritingCanvasHandle {
   /** Switch between pen and eraser tools. */
   setTool: (tool: "pen" | "eraser") => void;
   getTool: () => "pen" | "eraser";
+  /** Set the pen ink color (any CSS color). Does not affect the eraser. */
+  setColor: (color: string) => void;
+  getColor: () => string;
   /** Add more vertical writing space, preserving existing ink. */
   extend: (extraPx?: number) => void;
   /** Arm a one-shot stamp: the next tap on the canvas paints a bullet ("•") or
