@@ -310,6 +310,7 @@ function AdminPage() {
               <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2 text-left">Email</th>
+                  <th className="px-3 py-2 text-left">Workspace</th>
                   <th className="px-3 py-2 text-left">Note</th>
                   <th className="px-3 py-2 text-left">Added</th>
                   <th className="px-3 py-2"></th>
@@ -317,14 +318,23 @@ function AdminPage() {
               </thead>
               <tbody>
                 {allowedQ.isLoading && (
-                  <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">Loading…</td></tr>
+                  <tr><td colSpan={5} className="p-4 text-center text-muted-foreground">Loading…</td></tr>
                 )}
                 {!allowedQ.isLoading && (allowedQ.data?.users.length ?? 0) === 0 && (
-                  <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">No invited users yet.</td></tr>
+                  <tr><td colSpan={5} className="p-4 text-center text-muted-foreground">No invited users yet.</td></tr>
                 )}
-                {allowedQ.data?.users.map((u: { email: string; note: string | null; created_at: string }) => (
+                {allowedQ.data?.users.map((u: { email: string; note: string | null; created_at: string; workspace?: string }) => (
                   <tr key={u.email} className="border-t border-border">
                     <td className="px-3 py-2 font-medium">{u.email}</td>
+                    <td className="px-3 py-2">
+                      <span className={`rounded-full px-2 py-0.5 text-xs ${
+                        u.workspace === "solo"
+                          ? "bg-violet-100 text-violet-900"
+                          : "bg-sky-100 text-sky-900"
+                      }`}>
+                        {u.workspace === "solo" ? "Private" : "Shared"}
+                      </span>
+                    </td>
                     <td className="px-3 py-2 text-muted-foreground">{u.note ?? "—"}</td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
                       {new Date(u.created_at).toLocaleDateString()}
