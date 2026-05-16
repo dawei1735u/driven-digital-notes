@@ -137,6 +137,7 @@ export type Database = {
         Returns: boolean
       }
       is_user_allowed: { Args: { _user_id: string }; Returns: boolean }
+      storage_workspace_matches: { Args: { _name: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
