@@ -32,6 +32,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
     const lastRef = useRef<{ x: number; y: number } | null>(null);
     const dirtyRef = useRef(false);
     const toolRef = useRef<"pen" | "eraser">("pen");
+    const [extraHeight, setExtraHeight] = useState(0);
 
     // Paint the sticky-note yellow background.
     const paintBackground = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
