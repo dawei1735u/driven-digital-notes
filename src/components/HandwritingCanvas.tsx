@@ -34,7 +34,7 @@ interface Props {
  * - Background is light yellow and is preserved in the exported PNG.
  */
 export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
-  function HandwritingCanvas({ className }, ref) {
+  function HandwritingCanvas({ className, onStampPlaced }, ref) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const drawingRef = useRef(false);
@@ -126,8 +126,10 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
           ctx.restore();
           dirtyRef.current = true;
         }
+        const placedType = stampPendingRef.current;
         stampPendingRef.current = null;
         (e.target as HTMLCanvasElement).style.cursor = "crosshair";
+        if (placedType) onStampPlaced?.(placedType);
         return;
       }
       (e.target as HTMLCanvasElement).setPointerCapture(e.pointerId);
@@ -220,6 +222,10 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
       },
       resetNumbering: () => {
         numberCounterRef.current = 1;
+      },
+      cancelStamp: () => {
+        stampPendingRef.current = null;
+        if (canvasRef.current) canvasRef.current.style.cursor = "crosshair";
       },
     }));
 
