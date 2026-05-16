@@ -332,6 +332,58 @@ function MonitorPageInner() {
     };
   }, [notes]);
 
+  // Per-note resize handling
+  const onResizeStart = useCallback(
+    (id: string, e: React.PointerEvent) => {
+      const note = notes.find((n) => n.id === id);
+      if (!note) return;
+      const current = note.width ?? noteSize;
+      resizeRef.current = {
+        id,
+        startX: e.clientX,
+        startWidth: current,
+        pointerId: e.pointerId,
+      };
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    [notes, noteSize],
+  );
+
+  useEffect(() => {
+    const clamp = (n: number) => Math.min(800, Math.max(160, Math.round(n)));
+    const onMove = (e: PointerEvent) => {
+      const r = resizeRef.current;
+      if (!r || e.pointerId !== r.pointerId) return;
+      const next = clamp(r.startWidth + (e.clientX - r.startX));
+      setNotes((arr) =>
+        arr.map((n) => (n.id === r.id ? { ...n, width: next } : n)),
+      );
+    };
+    const onUp = async (e: PointerEvent) => {
+      const r = resizeRef.current;
+      if (!r || e.pointerId !== r.pointerId) return;
+      const finalNote = notes.find((n) => n.id === r.id);
+      resizeRef.current = null;
+      if (finalNote) {
+        const { error } = await supabase
+          .from("notes")
+          .update({ width: finalNote.width })
+          .eq("id", finalNote.id);
+        if (error) console.error(error);
+      }
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, [notes]);
+
   const shifts = Array.from(new Set(notes.map((n) => n.shift).filter(Boolean)));
   const categories = Array.from(
     new Set(notes.map((n) => n.category).filter((c): c is string => !!c)),
