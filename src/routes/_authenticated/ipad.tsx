@@ -265,14 +265,11 @@ function IpadPage() {
 
   const onSave = async () => {
     setError(null);
-    if (!writtenBy.trim()) {
-      setError("Please enter who wrote the note.");
-      return;
-    }
     if (canvasRef.current?.isEmpty()) {
       setError("Please write something on the note first.");
       return;
     }
+    const author = writtenBy.trim() || "Owner";
 
     setSaving(true);
     try {
