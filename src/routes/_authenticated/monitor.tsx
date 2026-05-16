@@ -431,6 +431,14 @@ function MonitorPageInner() {
             <PenLine className="h-6 w-6" />
             Write New Note
           </Link>
+          <Link
+            to="/ipad"
+            search={{ mode: "voice" }}
+            className="inline-flex items-center gap-3 rounded-2xl bg-red-500 px-7 py-4 text-lg font-bold text-white shadow-xl ring-2 ring-red-300/50 hover:bg-red-400"
+          >
+            <Mic className="h-6 w-6" />
+            Voice Note
+          </Link>
           <button
             onClick={async () => {
               await supabase.auth.signOut();
