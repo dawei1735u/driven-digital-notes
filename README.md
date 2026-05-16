@@ -93,10 +93,12 @@ src/
       changelog.tsx
   components/
     HandwritingCanvas.tsx      # Pencil capture, pen/eraser, extend()
-    NoteCard.tsx               # sticky w/ per-note resize + edit
+    VoiceRecorder.tsx          # MediaRecorder UI w/ preview playback
+    NoteCard.tsx               # sticky w/ per-note resize, edit, audio playback
     EditNoteDialog.tsx
   lib/
     admin.functions.ts         # createServerFn — admin-gated reads/writes
+    voice.functions.ts         # createServerFn — audio → Gemini transcript
     youtube.functions.ts       # createServerFn — caption-scrape + AI summary
     changelog.ts               # source of truth for /changelog
   integrations/supabase/       # auto-generated — do not edit
