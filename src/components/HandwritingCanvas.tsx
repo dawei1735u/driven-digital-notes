@@ -176,6 +176,9 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         toolRef.current = tool;
       },
       getTool: () => toolRef.current,
+      extend: (extraPx = 300) => {
+        setExtraHeight((h) => h + extraPx);
+      },
     }));
 
     return (
