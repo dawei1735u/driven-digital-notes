@@ -448,7 +448,8 @@ function IpadPage() {
 
       const ts = Date.now();
       const rand = Math.random().toString(36).slice(2, 10);
-      const path = `${ts}-${rand}.png`;
+      const wsFolderImg = workspaceIdRef.current ?? "shared";
+      const path = `${wsFolderImg}/${ts}-${rand}.png`;
 
       const { error: upErr } = await supabase.storage
         .from("note-images")
