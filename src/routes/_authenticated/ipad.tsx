@@ -86,6 +86,7 @@ async function renderTypedNoteToBlob(text: string): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
 }
 
+function IpadPage() {
 
   const canvasRef = useRef<HandwritingCanvasHandle>(null);
   const navigate = useNavigate();
