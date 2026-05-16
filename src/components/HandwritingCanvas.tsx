@@ -217,6 +217,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         if (!ctx) return;
         paintBackground(ctx, canvas.width, canvas.height);
         dirtyRef.current = false;
+        pasteCursorYRef.current = 0;
       },
       isEmpty: () => !dirtyRef.current,
       toBlob: () =>
