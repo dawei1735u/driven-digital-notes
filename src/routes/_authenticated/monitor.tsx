@@ -117,6 +117,12 @@ function MonitorPageInner() {
     offsetY: number;
     pointerId: number;
   } | null>(null);
+  const resizeRef = useRef<{
+    id: string;
+    startX: number;
+    startWidth: number;
+    pointerId: number;
+  } | null>(null);
   const pinchRef = useRef<{
     startDist: number;
     startSize: number;
