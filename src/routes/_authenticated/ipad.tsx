@@ -66,6 +66,7 @@ function IpadPage() {
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [pasteOk, setPasteOk] = useState(false);
   const [ytLoading, setYtLoading] = useState(false);
+  const [ytUrl, setYtUrl] = useState("");
   const summarizeYt = useServerFn(summarizeYouTube);
 
   const flashPasteOk = () => {
@@ -75,13 +76,17 @@ function IpadPage() {
 
   const insertYouTubeSummary = async () => {
     if (!canvasRef.current || ytLoading) return;
-    const url = window.prompt("Paste a YouTube link to summarize:");
-    if (!url || !url.trim()) return;
+    const url = ytUrl.trim();
+    if (!url) {
+      setPasteError("Enter a YouTube URL first.");
+      return;
+    }
     setPasteError(null);
     setYtLoading(true);
     try {
-      const res = await summarizeYt({ data: { url: url.trim() } });
+      const res = await summarizeYt({ data: { url } });
       canvasRef.current.pasteText(res.text);
+      setYtUrl("");
       flashPasteOk();
     } catch (err) {
       console.error(err);
@@ -496,14 +501,37 @@ function IpadPage() {
               >
                 <ClipboardPaste className="h-5 w-5" /> Paste
               </button>
-              <button
-                onClick={insertYouTubeSummary}
-                disabled={ytLoading}
-                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent disabled:opacity-60"
-                title="Paste a YouTube link to insert a quick summary"
-              >
-                <Youtube className="h-5 w-5" /> {ytLoading ? "Summarizing…" : "YouTube Summary"}
-              </button>
+              <div className="inline-flex items-stretch gap-2 rounded-xl border border-input bg-card px-2 py-1 shadow-sm">
+                <div className="inline-flex items-center gap-2 pl-1 text-muted-foreground">
+                  <Youtube className="h-5 w-5" />
+                </div>
+                <input
+                  type="url"
+                  value={ytUrl}
+                  onChange={(e) => setYtUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      insertYouTubeSummary();
+                    }
+                  }}
+                  placeholder="Paste YouTube URL…"
+                  inputMode="url"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  className="w-56 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+                  aria-label="YouTube URL"
+                />
+                <button
+                  onClick={insertYouTubeSummary}
+                  disabled={ytLoading || !ytUrl.trim()}
+                  className="rounded-lg bg-[var(--ink)] px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--ink)]/85 disabled:opacity-50"
+                  title="Insert a quick summary of the YouTube video"
+                >
+                  {ytLoading ? "Summarizing…" : "Summarize"}
+                </button>
+              </div>
               <button
                 onClick={onSave}
                 disabled={saving}
