@@ -270,6 +270,7 @@ function IpadPage() {
                 overflowY: "auto",
                 WebkitOverflowScrolling: "touch",
                 borderRadius: "6px",
+                position: "relative",
               }}
             >
               <ClientOnly
@@ -284,9 +285,39 @@ function IpadPage() {
                   />
                 }
               >
-                <HandwritingCanvas ref={canvasRef} />
+                <HandwritingCanvas
+                  ref={canvasRef}
+                  onStampPlaced={() => setPendingStamp(null)}
+                />
               </ClientOnly>
+              {pendingStamp && (
+                <div
+                  className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 animate-pulse rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-lg"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {pendingStamp === "bullet"
+                    ? "• Tap the canvas to place a bullet"
+                    : "# Tap the canvas to place the next number"}
+                </div>
+              )}
             </div>
+            {pendingStamp && (
+              <div className="mt-2 flex items-center justify-between rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-medium text-foreground">
+                <span>
+                  {pendingStamp === "bullet" ? "Bullet" : "Number"} mode armed — next tap places a marker.
+                </span>
+                <button
+                  onClick={() => {
+                    canvasRef.current?.cancelStamp();
+                    setPendingStamp(null);
+                  }}
+                  className="ml-3 rounded-md border border-input bg-card px-3 py-1 text-xs font-semibold hover:bg-accent"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 onClick={() => selectTool("pen")}
@@ -325,15 +356,27 @@ function IpadPage() {
                 <Plus className="h-5 w-5" /> Add space
               </button>
               <button
-                onClick={() => canvasRef.current?.stampNext("bullet")}
-                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+                onClick={() => armStamp("bullet")}
+                className={
+                  "inline-flex items-center gap-2 rounded-xl border px-5 py-3 text-base font-semibold shadow-sm " +
+                  (pendingStamp === "bullet"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-input bg-card hover:bg-accent")
+                }
+                aria-pressed={pendingStamp === "bullet"}
                 title="Tap the canvas to drop a bullet"
               >
                 <List className="h-5 w-5" /> Bullet
               </button>
               <button
-                onClick={() => canvasRef.current?.stampNext("number")}
-                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+                onClick={() => armStamp("number")}
+                className={
+                  "inline-flex items-center gap-2 rounded-xl border px-5 py-3 text-base font-semibold shadow-sm " +
+                  (pendingStamp === "number"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-input bg-card hover:bg-accent")
+                }
+                aria-pressed={pendingStamp === "number"}
                 title="Tap the canvas to drop the next number"
               >
                 <ListOrdered className="h-5 w-5" /> Number
