@@ -261,6 +261,27 @@ function IpadPage() {
     canvasRef.current?.setTool(t);
   };
 
+  const PEN_COLORS: { name: string; value: string }[] = [
+    { name: "Black", value: "#1a1a1a" },
+    { name: "Red", value: "#dc2626" },
+    { name: "Blue", value: "#2563eb" },
+    { name: "Green", value: "#16a34a" },
+    { name: "Orange", value: "#ea580c" },
+    { name: "Purple", value: "#7c3aed" },
+    { name: "Highlighter Yellow", value: "#facc15" },
+    { name: "Pink", value: "#ec4899" },
+  ];
+
+  const selectColor = (c: string) => {
+    setPenColor(c);
+    canvasRef.current?.setColor(c);
+    // Switch back to pen when picking a color
+    if (tool !== "pen") {
+      setTool("pen");
+      canvasRef.current?.setTool("pen");
+    }
+  };
+
   // Auto-populate "Written by" from the signed-in doorman's approved-user record
   useEffect(() => {
     if (isEdit) return; // edit mode preserves the original author
