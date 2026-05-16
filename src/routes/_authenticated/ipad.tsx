@@ -524,6 +524,18 @@ function IpadPage() {
             >
               <Type className="h-4 w-4" /> Type
             </button>
+            <button
+              onClick={() => setMode("voice")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "voice"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "voice"}
+            >
+              <Mic className="h-4 w-4" /> Voice
+            </button>
           </div>
           <div>
             <div
