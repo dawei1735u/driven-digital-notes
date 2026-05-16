@@ -9,6 +9,7 @@ import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plu
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
 import { transcribeAudio } from "@/lib/voice.functions";
+import { getMyWorkspaceId } from "@/lib/admin.functions";
 import { VoiceRecorder, blobToBase64, type Recording } from "@/components/VoiceRecorder";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
