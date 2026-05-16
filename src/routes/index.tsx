@@ -31,7 +31,7 @@ function Index() {
             className="mb-6 h-24 w-24 object-contain"
           />
           <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
-            Digital<span className="text-primary">Notes</span>
+            Tasks
           </h1>
         </div>
 
@@ -46,7 +46,7 @@ function Index() {
             }}
           >
             <PenLine className="mb-6 h-10 w-10 text-[var(--ink)]" />
-            <h2 className="text-3xl font-bold text-[var(--ink)]">Write a Note</h2>
+            <h2 className="text-3xl font-bold text-[var(--ink)]">Write a Task</h2>
             <p className="mt-2 text-[var(--ink)]/70">
               Open on iPad with Apple Pencil
             </p>
