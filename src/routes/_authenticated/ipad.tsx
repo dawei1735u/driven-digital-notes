@@ -5,7 +5,7 @@ import {
   type HandwritingCanvasHandle,
 } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2 } from "lucide-react";
+import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -253,20 +253,29 @@ function IpadPage() {
 
         <div className="grid gap-6 md:grid-cols-[1fr_320px]">
           <div>
-            <ClientOnly
-              fallback={
-                <div
-                  style={{
-                    aspectRatio: "3.5 / 3",
-                    width: "100%",
-                    background: "var(--sticky-yellow)",
-                    borderRadius: "6px",
-                  }}
-                />
-              }
+            <div
+              style={{
+                maxHeight: "70vh",
+                overflowY: "auto",
+                WebkitOverflowScrolling: "touch",
+                borderRadius: "6px",
+              }}
             >
-              <HandwritingCanvas ref={canvasRef} />
-            </ClientOnly>
+              <ClientOnly
+                fallback={
+                  <div
+                    style={{
+                      aspectRatio: "3.5 / 3",
+                      width: "100%",
+                      background: "var(--sticky-yellow)",
+                      borderRadius: "6px",
+                    }}
+                  />
+                }
+              >
+                <HandwritingCanvas ref={canvasRef} />
+              </ClientOnly>
+            </div>
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 onClick={() => selectTool("pen")}
@@ -297,6 +306,12 @@ function IpadPage() {
                 className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
               >
                 <Trash2 className="h-5 w-5" /> Clear all
+              </button>
+              <button
+                onClick={() => canvasRef.current?.extend(300)}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+              >
+                <Plus className="h-5 w-5" /> Add space
               </button>
               <button
                 onClick={onSave}
