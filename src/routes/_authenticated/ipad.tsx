@@ -108,6 +108,7 @@ function IpadPage() {
   const [error, setError] = useState<string | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
+  const [penColor, setPenColor] = useState<string>("#1a1a1a");
   const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
   const [mode, setMode] = useState<"handwrite" | "type" | "voice">(initialMode ?? "handwrite");
   const [typedText, setTypedText] = useState("");
