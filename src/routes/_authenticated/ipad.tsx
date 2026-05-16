@@ -468,6 +468,13 @@ function IpadPage() {
                 <RotateCcw className="h-5 w-5" /> Reset #
               </button>
               <button
+                onClick={pasteFromClipboard}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+                title="Paste text or image from clipboard (or use Cmd/Ctrl+V)"
+              >
+                <ClipboardPaste className="h-5 w-5" /> Paste
+              </button>
+              <button
                 onClick={onSave}
                 disabled={saving}
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-5 py-3 text-base font-bold text-white shadow-md transition hover:bg-[var(--ink)]/85 disabled:opacity-60"
@@ -490,6 +497,16 @@ function IpadPage() {
             {loadingEdit && (
               <div className="mt-3 rounded-md bg-amber-100 px-3 py-2 text-sm font-medium text-amber-900">
                 Loading existing note…
+              </div>
+            )}
+            {pasteOk && (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm font-medium text-blue-900">
+                <ClipboardPaste className="h-4 w-4" /> Pasted to the note.
+              </div>
+            )}
+            {pasteError && (
+              <div className="mt-3 rounded-md bg-amber-100 px-3 py-2 text-sm font-medium text-amber-900">
+                {pasteError}
               </div>
             )}
             {error && (
