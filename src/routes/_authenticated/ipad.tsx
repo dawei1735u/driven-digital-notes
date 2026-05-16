@@ -9,6 +9,7 @@ import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plu
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
 import { transcribeAudio } from "@/lib/voice.functions";
+import { getMyWorkspaceId } from "@/lib/admin.functions";
 import { VoiceRecorder, blobToBase64, type Recording } from "@/components/VoiceRecorder";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
@@ -117,6 +118,20 @@ function IpadPage() {
   const [recording, setRecording] = useState<Recording | null>(null);
   const [transcribing, setTranscribing] = useState(false);
   const transcribeFn = useServerFn(transcribeAudio);
+  const fetchWorkspace = useServerFn(getMyWorkspaceId);
+  const workspaceIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { workspaceId } = await fetchWorkspace();
+        if (!cancelled) workspaceIdRef.current = workspaceId;
+      } catch {
+        // non-fatal; insert will fail RLS if truly broken
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [fetchWorkspace]);
   const typedRef = useRef<HTMLTextAreaElement>(null);
   const noteWrapRef = useRef<HTMLDivElement>(null);
 
@@ -471,6 +486,7 @@ function IpadPage() {
           image_url: path,
           audio_url: audioPath,
           transcribed_text: transcript,
+          workspace_id: workspaceIdRef.current,
         });
         if (insErr) throw insErr;
         canvasRef.current?.clear();
