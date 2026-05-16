@@ -45,7 +45,7 @@ export const adminListAllowedUsers = createServerFn({ method: "GET" })
     await assertAdmin(supabase, userId);
     const { data, error } = await supabase
       .from("allowed_users")
-      .select("email, note, created_at, invited_by")
+      .select("email, note, created_at, invited_by, workspace")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return { users: data ?? [] };
@@ -59,6 +59,7 @@ export const adminInviteUser = createServerFn({ method: "POST" })
       .object({
         email: z.string().email().max(254),
         note: z.string().max(200).optional(),
+        workspace: z.enum(["shared", "solo"]).default("shared"),
       })
       .parse(input),
   )
@@ -69,11 +70,26 @@ export const adminInviteUser = createServerFn({ method: "POST" })
     const { error } = await supabase
       .from("allowed_users")
       .upsert(
-        { email: data.email, note: data.note ?? null, invited_by: userId },
+        {
+          email: data.email,
+          note: data.note ?? null,
+          invited_by: userId,
+          workspace: data.workspace,
+        },
         { onConflict: "email" },
       );
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+/** Returns the current user's workspace_id (NULL = shared doorman board). */
+export const getMyWorkspaceId = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabase = context.supabase as any;
+    const { data, error } = await supabase.rpc("get_my_workspace_id");
+    if (error) throw new Error(error.message);
+    return { workspaceId: (data ?? null) as string | null };
   });
 
 /** Admin-only: remove an email from the allowlist. Does NOT delete the
