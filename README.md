@@ -29,6 +29,18 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 
 ## Feature highlights
 
+### Voice notes (new in 1.13.0)
+- **Record + auto-transcribe** — both `/ipad` and `/monitor` expose a voice note flow. Recording uses the browser `MediaRecorder` API (`src/components/VoiceRecorder.tsx`) with start/stop/playback preview before saving.
+- **Transcription** — recorded audio is base64-encoded and sent to the `transcribeAudio` server function (`src/lib/voice.functions.ts`), which calls the Lovable AI Gateway (`google/gemini-2.5-flash`) for a verbatim transcript. No API key needed.
+- **Storage** — the original recording is uploaded to a new private `note-audio` bucket (RLS: allowlisted users upload/read, admins delete). The transcript is rendered to a PNG (same pipeline as handwriting) so it appears as a normal sticky on the lobby board, with `audio_url` stored on the `notes` row.
+- **Playback** — `NoteCard` shows an audio toggle on any note that has `audio_url`; clicking it streams the recording via a short-lived `createSignedUrl` from the private bucket.
+- **Entry points** — `/ipad` now accepts a `mode` search param (`handwrite | type | voice`); `/monitor` has a "Voice Note" quick-action button in the header that links to `/ipad?mode=voice`.
+
+### Login UX hardening (1.13.1)
+- Friendlier error message when Supabase returns "Invalid login credentials" — guides the user to **Continue with Google** (Google-only accounts) or **Forgot password** (password accounts) instead of the raw error.
+- Emails are trimmed and lower-cased before `signInWithPassword`, `signUp`, and `resetPasswordForEmail` to avoid invisible-whitespace / case mismatches.
+- Proper `autoComplete` + `inputMode` attributes on email/password fields so iOS password managers and autofill behave correctly.
+
 ### Capture (`/ipad`)
 - Apple Pencil handwriting on `HandwritingCanvas` (pressure-aware strokes, exports a PNG into the `note-images` bucket).
 - **Pen / Eraser / Clear all** toolbar — eraser paints over with the sticky-note background color so exports stay opaque.
@@ -81,10 +93,12 @@ src/
       changelog.tsx
   components/
     HandwritingCanvas.tsx      # Pencil capture, pen/eraser, extend()
-    NoteCard.tsx               # sticky w/ per-note resize + edit
+    VoiceRecorder.tsx          # MediaRecorder UI w/ preview playback
+    NoteCard.tsx               # sticky w/ per-note resize, edit, audio playback
     EditNoteDialog.tsx
   lib/
     admin.functions.ts         # createServerFn — admin-gated reads/writes
+    voice.functions.ts         # createServerFn — audio → Gemini transcript
     youtube.functions.ts       # createServerFn — caption-scrape + AI summary
     changelog.ts               # source of truth for /changelog
   integrations/supabase/       # auto-generated — do not edit
@@ -106,6 +120,8 @@ bun run dev      # vite dev server
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.13.1** — Login: friendlier "invalid credentials" message that points users to Google sign-in or password reset; emails normalized (trim + lowercase); proper autocomplete attributes.
+- **1.13.0** — Voice notes end-to-end: record on `/ipad` or `/monitor`, auto-transcribe via Lovable AI (Gemini 2.5 Flash), store original audio in a private `note-audio` bucket, play back inline on each `NoteCard`. New `audio_url` column on `notes`, new `transcribeAudio` server function, and a `mode=voice` deep link on `/ipad`.
 - **1.12.0** — `/ipad`: bullet & number stamps (with tap-and-drag and auto-numbering), clipboard paste (text + images) via Cmd/Ctrl+V or toolbar button, and an AI-powered YouTube summary tool that uses the video's captions when available.
 - **1.11.0** — Personal-mode iPad: removed the note-details side panel so the canvas is full-width. Renamed every user-facing "ShiftNotes" / "Shift Handoff" string to "Tasks" across meta titles & descriptions (`/`, root, `/monitor`, `/ipad`).
 - **1.10.0** — iPad: no-select canvas + extendable writing space (`+` add space button).
