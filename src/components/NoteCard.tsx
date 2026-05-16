@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { Check, Clock, MapPin, User, Calendar as CalIcon, GripVertical, RotateCcw, Pencil } from "lucide-react";
+import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil } from "lucide-react";
 
 function CornerResizeIcon({ className }: { className?: string }) {
   return (
@@ -170,22 +170,6 @@ export function NoteCard({
           className="block w-full"
           loading="lazy"
         />
-      </div>
-
-      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium opacity-90">
-        <span className="inline-flex items-center gap-1">
-          <User className="h-3 w-3" /> {note.written_by}
-        </span>
-        {note.apartment ? (
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="h-3 w-3" /> {note.apartment}
-          </span>
-        ) : null}
-        {note.category ? (
-          <span className="rounded bg-[var(--ink)]/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider">
-            {note.category}
-          </span>
-        ) : null}
       </div>
 
       <button
