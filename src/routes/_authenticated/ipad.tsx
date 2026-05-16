@@ -52,6 +52,8 @@ function IpadPage() {
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
+  const [mode, setMode] = useState<"handwrite" | "type">("handwrite");
+  const [typedText, setTypedText] = useState("");
 
   const armStamp = (type: "bullet" | "number") => {
     if (pendingStamp === type) {
