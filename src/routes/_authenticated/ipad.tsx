@@ -108,6 +108,7 @@ function IpadPage() {
   const [error, setError] = useState<string | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
+  const [penColor, setPenColor] = useState<string>("#1a1a1a");
   const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
   const [mode, setMode] = useState<"handwrite" | "type" | "voice">(initialMode ?? "handwrite");
   const [typedText, setTypedText] = useState("");
@@ -258,6 +259,27 @@ function IpadPage() {
   const selectTool = (t: "pen" | "eraser") => {
     setTool(t);
     canvasRef.current?.setTool(t);
+  };
+
+  const PEN_COLORS: { name: string; value: string }[] = [
+    { name: "Black", value: "#1a1a1a" },
+    { name: "Red", value: "#dc2626" },
+    { name: "Blue", value: "#2563eb" },
+    { name: "Green", value: "#16a34a" },
+    { name: "Orange", value: "#ea580c" },
+    { name: "Purple", value: "#7c3aed" },
+    { name: "Highlighter Yellow", value: "#facc15" },
+    { name: "Pink", value: "#ec4899" },
+  ];
+
+  const selectColor = (c: string) => {
+    setPenColor(c);
+    canvasRef.current?.setColor(c);
+    // Switch back to pen when picking a color
+    if (tool !== "pen") {
+      setTool("pen");
+      canvasRef.current?.setTool("pen");
+    }
   };
 
   // Auto-populate "Written by" from the signed-in doorman's approved-user record
@@ -668,6 +690,44 @@ function IpadPage() {
               >
                 <Eraser className="h-5 w-5" /> Eraser
               </button>
+              <div
+                className="inline-flex items-center gap-1.5 rounded-xl border border-input bg-card px-2 py-1.5 shadow-sm"
+                role="group"
+                aria-label="Pen color"
+              >
+                {PEN_COLORS.map((c) => {
+                  const active = penColor === c.value && tool === "pen";
+                  return (
+                    <button
+                      key={c.value}
+                      onClick={() => selectColor(c.value)}
+                      title={c.name}
+                      aria-label={c.name}
+                      aria-pressed={active}
+                      className={
+                        "h-8 w-8 rounded-full border-2 transition " +
+                        (active
+                          ? "border-foreground scale-110 shadow"
+                          : "border-transparent hover:scale-105")
+                      }
+                      style={{ background: c.value }}
+                    />
+                  );
+                })}
+                <label
+                  className="ml-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-input bg-background text-xs font-bold text-muted-foreground hover:bg-accent"
+                  title="Custom color"
+                >
+                  +
+                  <input
+                    type="color"
+                    value={penColor}
+                    onChange={(e) => selectColor(e.target.value)}
+                    className="sr-only"
+                    aria-label="Custom pen color"
+                  />
+                </label>
+              </div>
               <button
                 onClick={() => canvasRef.current?.clear()}
                 className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"

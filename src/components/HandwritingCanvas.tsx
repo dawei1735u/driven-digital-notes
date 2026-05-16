@@ -10,6 +10,9 @@ export interface HandwritingCanvasHandle {
   /** Switch between pen and eraser tools. */
   setTool: (tool: "pen" | "eraser") => void;
   getTool: () => "pen" | "eraser";
+  /** Set the pen ink color (any CSS color). Does not affect the eraser. */
+  setColor: (color: string) => void;
+  getColor: () => string;
   /** Add more vertical writing space, preserving existing ink. */
   extend: (extraPx?: number) => void;
   /** Arm a one-shot stamp: the next tap on the canvas paints a bullet ("•") or
@@ -45,6 +48,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
     const lastRef = useRef<{ x: number; y: number } | null>(null);
     const dirtyRef = useRef(false);
     const toolRef = useRef<"pen" | "eraser">("pen");
+    const colorRef = useRef<string>("#1a1a1a");
     const stampPendingRef = useRef<"bullet" | "number" | null>(null);
     const stampDraggingRef = useRef(false);
     const lastStampPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -121,7 +125,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
           ? "•"
           : `${numberCounterRef.current++}.`;
       ctx.save();
-      ctx.fillStyle = "#1a1a1a";
+      ctx.fillStyle = colorRef.current;
       ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
       ctx.textBaseline = "middle";
       ctx.textAlign = "left";
@@ -187,7 +191,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         ctx.stroke();
         ctx.restore();
       } else {
-        ctx.strokeStyle = "#1a1a1a";
+        ctx.strokeStyle = colorRef.current;
         ctx.lineWidth = (1.5 + pressure * 3.5) * dpr;
         ctx.beginPath();
         ctx.moveTo(lastRef.current.x, lastRef.current.y);
@@ -247,6 +251,10 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         toolRef.current = tool;
       },
       getTool: () => toolRef.current,
+      setColor: (color) => {
+        colorRef.current = color;
+      },
+      getColor: () => colorRef.current,
       extend: (extraPx = 300) => {
         setExtraHeight((h) => h + extraPx);
       },
