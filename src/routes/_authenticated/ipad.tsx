@@ -5,7 +5,7 @@ import {
   type HandwritingCanvasHandle,
 } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -312,6 +312,27 @@ function IpadPage() {
                 className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
               >
                 <Plus className="h-5 w-5" /> Add space
+              </button>
+              <button
+                onClick={() => canvasRef.current?.stampNext("bullet")}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+                title="Tap the canvas to drop a bullet"
+              >
+                <List className="h-5 w-5" /> Bullet
+              </button>
+              <button
+                onClick={() => canvasRef.current?.stampNext("number")}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+                title="Tap the canvas to drop the next number"
+              >
+                <ListOrdered className="h-5 w-5" /> Number
+              </button>
+              <button
+                onClick={() => canvasRef.current?.resetNumbering()}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+                title="Restart numbering at 1"
+              >
+                <RotateCcw className="h-5 w-5" /> Reset #
               </button>
               <button
                 onClick={onSave}

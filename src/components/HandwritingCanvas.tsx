@@ -12,6 +12,11 @@ export interface HandwritingCanvasHandle {
   getTool: () => "pen" | "eraser";
   /** Add more vertical writing space, preserving existing ink. */
   extend: (extraPx?: number) => void;
+  /** Arm a one-shot stamp: the next tap on the canvas paints a bullet ("•") or
+   *  auto-incrementing number ("1.", "2.", …) instead of starting a stroke. */
+  stampNext: (type: "bullet" | "number") => void;
+  /** Reset the auto-incrementing number counter back to 1. */
+  resetNumbering: () => void;
 }
 
 interface Props {
@@ -32,6 +37,8 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
     const lastRef = useRef<{ x: number; y: number } | null>(null);
     const dirtyRef = useRef(false);
     const toolRef = useRef<"pen" | "eraser">("pen");
+    const stampPendingRef = useRef<"bullet" | "number" | null>(null);
+    const numberCounterRef = useRef<number>(1);
     const [extraHeight, setExtraHeight] = useState(0);
 
     // Paint the sticky-note yellow background.
@@ -95,6 +102,30 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
 
     const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
       e.preventDefault();
+      // One-shot stamp mode: paint a bullet / number at the tap, then exit.
+      if (stampPendingRef.current) {
+        const ctx = canvasRef.current?.getContext("2d");
+        if (ctx) {
+          const p = getPos(e);
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          const fontPx = 28 * dpr;
+          const text =
+            stampPendingRef.current === "bullet"
+              ? "•"
+              : `${numberCounterRef.current++}.`;
+          ctx.save();
+          ctx.fillStyle = "#1a1a1a";
+          ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
+          ctx.textBaseline = "middle";
+          ctx.textAlign = "left";
+          ctx.fillText(text, p.x, p.y);
+          ctx.restore();
+          dirtyRef.current = true;
+        }
+        stampPendingRef.current = null;
+        (e.target as HTMLCanvasElement).style.cursor = "crosshair";
+        return;
+      }
       (e.target as HTMLCanvasElement).setPointerCapture(e.pointerId);
       drawingRef.current = true;
       lastRef.current = getPos(e);
@@ -178,6 +209,13 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
       getTool: () => toolRef.current,
       extend: (extraPx = 300) => {
         setExtraHeight((h) => h + extraPx);
+      },
+      stampNext: (type) => {
+        stampPendingRef.current = type;
+        if (canvasRef.current) canvasRef.current.style.cursor = "copy";
+      },
+      resetNumbering: () => {
+        numberCounterRef.current = 1;
       },
     }));
 
