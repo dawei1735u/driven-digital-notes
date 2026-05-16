@@ -29,6 +29,18 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 
 ## Feature highlights
 
+### Voice notes (new in 1.13.0)
+- **Record + auto-transcribe** — both `/ipad` and `/monitor` expose a voice note flow. Recording uses the browser `MediaRecorder` API (`src/components/VoiceRecorder.tsx`) with start/stop/playback preview before saving.
+- **Transcription** — recorded audio is base64-encoded and sent to the `transcribeAudio` server function (`src/lib/voice.functions.ts`), which calls the Lovable AI Gateway (`google/gemini-2.5-flash`) for a verbatim transcript. No API key needed.
+- **Storage** — the original recording is uploaded to a new private `note-audio` bucket (RLS: allowlisted users upload/read, admins delete). The transcript is rendered to a PNG (same pipeline as handwriting) so it appears as a normal sticky on the lobby board, with `audio_url` stored on the `notes` row.
+- **Playback** — `NoteCard` shows an audio toggle on any note that has `audio_url`; clicking it streams the recording via a short-lived `createSignedUrl` from the private bucket.
+- **Entry points** — `/ipad` now accepts a `mode` search param (`handwrite | type | voice`); `/monitor` has a "Voice Note" quick-action button in the header that links to `/ipad?mode=voice`.
+
+### Login UX hardening (1.13.1)
+- Friendlier error message when Supabase returns "Invalid login credentials" — guides the user to **Continue with Google** (Google-only accounts) or **Forgot password** (password accounts) instead of the raw error.
+- Emails are trimmed and lower-cased before `signInWithPassword`, `signUp`, and `resetPasswordForEmail` to avoid invisible-whitespace / case mismatches.
+- Proper `autoComplete` + `inputMode` attributes on email/password fields so iOS password managers and autofill behave correctly.
+
 ### Capture (`/ipad`)
 - Apple Pencil handwriting on `HandwritingCanvas` (pressure-aware strokes, exports a PNG into the `note-images` bucket).
 - **Pen / Eraser / Clear all** toolbar — eraser paints over with the sticky-note background color so exports stay opaque.
