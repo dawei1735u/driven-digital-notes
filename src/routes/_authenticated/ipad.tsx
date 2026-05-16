@@ -516,13 +516,13 @@ function IpadPage() {
                 </>
               ) : (
                 <textarea
+                  ref={typedRef}
                   value={typedText}
                   onChange={(e) => setTypedText(e.target.value)}
                   placeholder="Type your note here…"
-                  className="block w-full resize-y rounded-md p-6 text-lg leading-relaxed text-foreground outline-none placeholder:text-foreground/40"
+                  className="block w-full resize-none overflow-hidden rounded-md p-6 text-lg leading-relaxed text-foreground outline-none placeholder:text-foreground/40"
                   style={{
                     background: "var(--sticky-yellow)",
-                    minHeight: "60vh",
                     boxShadow:
                       "0 14px 28px -10px rgba(0,0,0,0.25), 0 6px 12px -6px rgba(0,0,0,0.18)",
                     fontFamily:
