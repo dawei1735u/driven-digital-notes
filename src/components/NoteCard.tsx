@@ -198,6 +198,16 @@ export function NoteCard({
           ? isResolved ? "Reopening…" : "Resolving…"
           : isResolved ? "Mark Open" : "Mark Resolved"}
       </button>
+      {onResizeStart && (
+        <button
+          onPointerDown={(e) => onResizeStart(note.id, e)}
+          className="absolute bottom-1 right-1 inline-flex h-5 w-5 cursor-nwse-resize items-center justify-center rounded text-[var(--ink)]/60 hover:bg-[var(--ink)]/10 hover:text-[var(--ink)] touch-none"
+          aria-label="Resize note"
+          title="Drag to resize"
+        >
+          <CornerResizeIcon className="h-3 w-3" />
+        </button>
+      )}
     </div>
   );
 }
