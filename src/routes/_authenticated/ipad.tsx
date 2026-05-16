@@ -76,13 +76,17 @@ function IpadPage() {
 
   const insertYouTubeSummary = async () => {
     if (!canvasRef.current || ytLoading) return;
-    const url = window.prompt("Paste a YouTube link to summarize:");
-    if (!url || !url.trim()) return;
+    const url = ytUrl.trim();
+    if (!url) {
+      setPasteError("Enter a YouTube URL first.");
+      return;
+    }
     setPasteError(null);
     setYtLoading(true);
     try {
-      const res = await summarizeYt({ data: { url: url.trim() } });
+      const res = await summarizeYt({ data: { url } });
       canvasRef.current.pasteText(res.text);
+      setYtUrl("");
       flashPasteOk();
     } catch (err) {
       console.error(err);
