@@ -104,39 +104,63 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
       };
     };
 
+    const placeStamp = (x: number, y: number) => {
+      const ctx = canvasRef.current?.getContext("2d");
+      if (!ctx || !stampPendingRef.current) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const fontPx = 28 * dpr;
+      const text =
+        stampPendingRef.current === "bullet"
+          ? "•"
+          : `${numberCounterRef.current++}.`;
+      ctx.save();
+      ctx.fillStyle = "#1a1a1a";
+      ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "left";
+      ctx.fillText(text, x, y);
+      ctx.restore();
+      dirtyRef.current = true;
+      lastStampPosRef.current = { x, y };
+      if (stampPendingRef.current) onStampPlaced?.(stampPendingRef.current);
+    };
+
     const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
       e.preventDefault();
-      // One-shot stamp mode: paint a bullet / number at the tap, then exit.
+      (e.target as HTMLCanvasElement).setPointerCapture(e.pointerId);
+      // Sticky stamp mode: place a marker on tap, and continue placing along
+      // the drag path. Mode stays active until the caller cancels it.
       if (stampPendingRef.current) {
-        const ctx = canvasRef.current?.getContext("2d");
-        if (ctx) {
-          const p = getPos(e);
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          const fontPx = 28 * dpr;
-          const text =
-            stampPendingRef.current === "bullet"
-              ? "•"
-              : `${numberCounterRef.current++}.`;
-          ctx.save();
-          ctx.fillStyle = "#1a1a1a";
-          ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
-          ctx.textBaseline = "middle";
-          ctx.textAlign = "left";
-          ctx.fillText(text, p.x, p.y);
-          ctx.restore();
-          dirtyRef.current = true;
-        }
-        const placedType = stampPendingRef.current;
-        stampPendingRef.current = null;
-        (e.target as HTMLCanvasElement).style.cursor = "crosshair";
-        if (placedType) onStampPlaced?.(placedType);
+        const p = getPos(e);
+        stampDraggingRef.current = true;
+        lastStampPosRef.current = null;
+        placeStamp(p.x, p.y);
         return;
       }
-      (e.target as HTMLCanvasElement).setPointerCapture(e.pointerId);
       drawingRef.current = true;
       lastRef.current = getPos(e);
     };
     const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+      // Stamp-drag: place additional markers spaced along the drag path.
+      if (stampDraggingRef.current && stampPendingRef.current) {
+        e.preventDefault();
+        const p = getPos(e);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        // Min spacing between markers (in canvas px) so drags don't pile up.
+        const minSpacing =
+          (stampPendingRef.current === "bullet" ? 40 : 56) * dpr;
+        const last = lastStampPosRef.current;
+        if (!last) {
+          placeStamp(p.x, p.y);
+          return;
+        }
+        const dx = p.x - last.x;
+        const dy = p.y - last.y;
+        if (Math.hypot(dx, dy) >= minSpacing) {
+          placeStamp(p.x, p.y);
+        }
+        return;
+      }
       if (!drawingRef.current) return;
       e.preventDefault();
       const ctx = canvasRef.current?.getContext("2d");
@@ -168,6 +192,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
     };
     const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
       drawingRef.current = false;
+      stampDraggingRef.current = false;
       lastRef.current = null;
       try {
         (e.target as HTMLCanvasElement).releasePointerCapture(e.pointerId);
@@ -175,6 +200,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         /* ignore */
       }
     };
+
 
     useImperativeHandle(ref, () => ({
       clear: () => {
