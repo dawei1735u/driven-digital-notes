@@ -352,14 +352,54 @@ function IpadPage() {
       setError("Please type something on the note first.");
       return;
     }
+    if (mode === "voice" && !recording) {
+      setError("Please record a voice note first.");
+      return;
+    }
     const author = writtenBy.trim() || "Owner";
 
     setSaving(true);
     try {
-      const blob =
-        mode === "handwrite"
-          ? await canvasRef.current!.toBlob()
-          : await renderTypedNoteToBlob(typedText);
+      // Voice mode: transcribe → render transcript image → upload audio
+      let transcript: string | null = null;
+      let audioPath: string | null = null;
+      let blob: Blob | null = null;
+
+      if (mode === "voice" && recording) {
+        setTranscribing(true);
+        const audioBase64 = await blobToBase64(recording.blob);
+        const result = await transcribeFn({
+          data: { audioBase64, mimeType: recording.mimeType },
+        });
+        setTranscribing(false);
+        if (result.error) throw new Error(result.error);
+        transcript = result.text.trim() || "(voice note — no speech detected)";
+
+        // Upload audio clip
+        const ext = recording.mimeType.includes("mp4")
+          ? "m4a"
+          : recording.mimeType.includes("wav")
+          ? "wav"
+          : "webm";
+        const aTs = Date.now();
+        const aRand = Math.random().toString(36).slice(2, 10);
+        audioPath = `${aTs}-${aRand}.${ext}`;
+        const { error: aUpErr } = await supabase.storage
+          .from("note-audio")
+          .upload(audioPath, recording.blob, {
+            contentType: recording.mimeType,
+            cacheControl: "3600",
+            upsert: false,
+          });
+        if (aUpErr) throw aUpErr;
+
+        blob = await renderTypedNoteToBlob(transcript);
+      } else {
+        blob =
+          mode === "handwrite"
+            ? await canvasRef.current!.toBlob()
+            : await renderTypedNoteToBlob(typedText);
+      }
       if (!blob) throw new Error("Could not export the note.");
 
       const ts = Date.now();
@@ -385,6 +425,7 @@ function IpadPage() {
             apartment: apartment.trim() || null,
             category,
             image_url: path,
+            ...(audioPath ? { audio_url: audioPath, transcribed_text: transcript } : {}),
           })
           .eq("id", editId);
         if (updErr) throw updErr;
@@ -394,17 +435,19 @@ function IpadPage() {
           navigate({ to: "/monitor" });
         }, 1200);
       } else {
-        // Bucket is private — store the storage path. Monitor signs URLs at view time.
         const { error: insErr } = await supabase.from("notes").insert({
           written_by: author,
           shift,
           apartment: apartment.trim() || null,
           category,
           image_url: path,
+          audio_url: audioPath,
+          transcribed_text: transcript,
         });
         if (insErr) throw insErr;
         canvasRef.current?.clear();
         setTypedText("");
+        setRecording(null);
         setApartment("");
         setSavedAt(Date.now());
         setTimeout(() => setSavedAt(null), 2500);
@@ -414,6 +457,7 @@ function IpadPage() {
       setError(e instanceof Error ? e.message : "Failed to save note.");
     } finally {
       setSaving(false);
+      setTranscribing(false);
     }
   };
 
