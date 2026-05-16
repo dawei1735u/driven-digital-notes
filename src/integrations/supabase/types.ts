@@ -21,6 +21,7 @@ export type Database = {
           email: string
           invited_by: string | null
           note: string | null
+          workspace: string
         }
         Insert: {
           created_at?: string
@@ -28,6 +29,7 @@ export type Database = {
           email: string
           invited_by?: string | null
           note?: string | null
+          workspace?: string
         }
         Update: {
           created_at?: string
@@ -35,6 +37,7 @@ export type Database = {
           email?: string
           invited_by?: string | null
           note?: string | null
+          workspace?: string
         }
         Relationships: []
       }
@@ -55,6 +58,7 @@ export type Database = {
           transcribed_text: string | null
           updated_at: string
           width: number | null
+          workspace_id: string | null
           written_by: string
         }
         Insert: {
@@ -73,6 +77,7 @@ export type Database = {
           transcribed_text?: string | null
           updated_at?: string
           width?: number | null
+          workspace_id?: string | null
           written_by: string
         }
         Update: {
@@ -91,6 +96,7 @@ export type Database = {
           transcribed_text?: string | null
           updated_at?: string
           width?: number | null
+          workspace_id?: string | null
           written_by?: string
         }
         Relationships: []
@@ -121,6 +127,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_my_workspace_id: { Args: never; Returns: string }
       has_any_admin: { Args: never; Returns: boolean }
       has_role: {
         Args: {
