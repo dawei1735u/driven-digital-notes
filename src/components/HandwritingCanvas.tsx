@@ -251,6 +251,10 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         toolRef.current = tool;
       },
       getTool: () => toolRef.current,
+      setColor: (color) => {
+        colorRef.current = color;
+      },
+      getColor: () => colorRef.current,
       extend: (extraPx = 300) => {
         setExtraHeight((h) => h + extraPx);
       },
