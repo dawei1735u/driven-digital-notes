@@ -263,6 +263,29 @@ export function NoteCard({
         <span className="rounded-full bg-[var(--ink)]/10 px-2 py-0.5">
           {note.shift}
         </span>
+        {audioPath && (
+          <button
+            onClick={toggleAudio}
+            disabled={audioLoading}
+            className={
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 transition " +
+              (audioPlaying
+                ? "bg-[var(--ink)] text-white"
+                : "bg-[var(--ink)]/10 hover:bg-[var(--ink)]/20")
+            }
+            title={audioPlaying ? "Pause voice note" : "Play voice note"}
+            aria-label={audioPlaying ? "Pause voice note" : "Play voice note"}
+          >
+            {audioLoading ? (
+              <Volume2 className="h-3 w-3 animate-pulse" />
+            ) : audioPlaying ? (
+              <Pause className="h-3 w-3" />
+            ) : (
+              <Play className="h-3 w-3" />
+            )}
+            <span className="text-[10px] font-bold uppercase tracking-wider">Voice</span>
+          </button>
+        )}
         <button
           onClick={() => setStrikeMode((v) => !v)}
           className={
