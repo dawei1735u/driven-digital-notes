@@ -191,10 +191,9 @@ function IpadPage() {
         .ilike("email", email)
         .maybeSingle();
       if (cancelled) return;
-      if (data?.display_name) {
-        setWrittenBy(data.display_name);
-        setWrittenByLocked(true);
-      }
+      const name = data?.display_name?.trim() || email.split("@")[0];
+      setWrittenBy(name);
+      setWrittenByLocked(true);
     })();
     return () => {
       cancelled = true;
@@ -266,14 +265,11 @@ function IpadPage() {
 
   const onSave = async () => {
     setError(null);
-    if (!writtenBy.trim()) {
-      setError("Please enter who wrote the note.");
-      return;
-    }
     if (canvasRef.current?.isEmpty()) {
       setError("Please write something on the note first.");
       return;
     }
+    const author = writtenBy.trim() || "Owner";
 
     setSaving(true);
     try {
@@ -298,7 +294,7 @@ function IpadPage() {
         const { error: updErr } = await supabase
           .from("notes")
           .update({
-            written_by: writtenBy.trim(),
+            written_by: author,
             shift,
             apartment: apartment.trim() || null,
             category,
@@ -314,7 +310,7 @@ function IpadPage() {
       } else {
         // Bucket is private — store the storage path. Monitor signs URLs at view time.
         const { error: insErr } = await supabase.from("notes").insert({
-          written_by: writtenBy.trim(),
+          written_by: author,
           shift,
           apartment: apartment.trim() || null,
           category,
