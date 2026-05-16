@@ -85,6 +85,7 @@ src/
     EditNoteDialog.tsx
   lib/
     admin.functions.ts         # createServerFn — admin-gated reads/writes
+    youtube.functions.ts       # createServerFn — caption-scrape + AI summary
     changelog.ts               # source of truth for /changelog
   integrations/supabase/       # auto-generated — do not edit
 supabase/
