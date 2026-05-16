@@ -106,6 +106,7 @@ bun run dev      # vite dev server
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.12.0** — `/ipad`: bullet & number stamps (with tap-and-drag and auto-numbering), clipboard paste (text + images) via Cmd/Ctrl+V or toolbar button, and an AI-powered YouTube summary tool that uses the video's captions when available.
 - **1.11.0** — Personal-mode iPad: removed the note-details side panel so the canvas is full-width. Renamed every user-facing "ShiftNotes" / "Shift Handoff" string to "Tasks" across meta titles & descriptions (`/`, root, `/monitor`, `/ipad`).
 - **1.10.0** — iPad: no-select canvas + extendable writing space (`+` add space button).
 - **1.9.0** — Login: show/hide password toggle, forgot-password flow, `/reset-password` page.
