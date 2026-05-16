@@ -625,11 +625,12 @@ function MonitorPageInner() {
               >
                 <NoteCard
                   note={n}
-                  width={noteSize}
+                  width={n.width ?? noteSize}
                   onResolved={onResolved}
                   onDragStart={onDragStart}
                   onLocalUpdate={onLocalUpdate}
                   onEdit={(id) => setEditingId(id)}
+                  onResizeStart={onResizeStart}
                 />
               </div>
             ))}
