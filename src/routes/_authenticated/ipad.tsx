@@ -5,7 +5,7 @@ import {
   type HandwritingCanvasHandle,
 } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2 } from "lucide-react";
+import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
   validateSearch: (s: Record<string, unknown>) => ({
