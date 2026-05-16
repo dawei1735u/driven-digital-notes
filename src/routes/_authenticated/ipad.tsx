@@ -267,16 +267,23 @@ function IpadPage() {
 
   const onSave = async () => {
     setError(null);
-    if (canvasRef.current?.isEmpty()) {
+    if (mode === "handwrite" && canvasRef.current?.isEmpty()) {
       setError("Please write something on the note first.");
+      return;
+    }
+    if (mode === "type" && !typedText.trim()) {
+      setError("Please type something on the note first.");
       return;
     }
     const author = writtenBy.trim() || "Owner";
 
     setSaving(true);
     try {
-      const blob = await canvasRef.current!.toBlob();
-      if (!blob) throw new Error("Could not export the drawing.");
+      const blob =
+        mode === "handwrite"
+          ? await canvasRef.current!.toBlob()
+          : await renderTypedNoteToBlob(typedText);
+      if (!blob) throw new Error("Could not export the note.");
 
       const ts = Date.now();
       const rand = Math.random().toString(36).slice(2, 10);
