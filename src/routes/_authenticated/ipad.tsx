@@ -253,20 +253,29 @@ function IpadPage() {
 
         <div className="grid gap-6 md:grid-cols-[1fr_320px]">
           <div>
-            <ClientOnly
-              fallback={
-                <div
-                  style={{
-                    aspectRatio: "3.5 / 3",
-                    width: "100%",
-                    background: "var(--sticky-yellow)",
-                    borderRadius: "6px",
-                  }}
-                />
-              }
+            <div
+              style={{
+                maxHeight: "70vh",
+                overflowY: "auto",
+                WebkitOverflowScrolling: "touch",
+                borderRadius: "6px",
+              }}
             >
-              <HandwritingCanvas ref={canvasRef} />
-            </ClientOnly>
+              <ClientOnly
+                fallback={
+                  <div
+                    style={{
+                      aspectRatio: "3.5 / 3",
+                      width: "100%",
+                      background: "var(--sticky-yellow)",
+                      borderRadius: "6px",
+                    }}
+                  />
+                }
+              >
+                <HandwritingCanvas ref={canvasRef} />
+              </ClientOnly>
+            </div>
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 onClick={() => selectTool("pen")}
