@@ -753,7 +753,9 @@ function IpadPage() {
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-5 py-3 text-base font-bold text-white shadow-md transition hover:bg-[var(--ink)]/85 disabled:opacity-60"
               >
                 <Save className="h-5 w-5" />
-                {saving
+                {transcribing
+                  ? "Transcribing…"
+                  : saving
                   ? "Saving…"
                   : isEdit
                   ? "Save Changes"
