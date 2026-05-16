@@ -63,6 +63,74 @@ export function NoteCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
+  const [strikeMode, setStrikeMode] = useState(false);
+  const strikes: Strike[] = Array.isArray((note as unknown as { strikes?: Strike[] }).strikes)
+    ? ((note as unknown as { strikes: Strike[] }).strikes)
+    : [];
+  const imgWrapRef = useRef<HTMLDivElement>(null);
+  const drawStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [tempStrike, setTempStrike] = useState<Strike | null>(null);
+
+  const persistStrikes = async (next: Strike[]) => {
+    onLocalUpdate?.(note.id, { strikes: next } as unknown as Partial<Note>);
+    const { error } = await supabase
+      .from("notes")
+      .update({ strikes: next } as never)
+      .eq("id", note.id);
+    if (error) {
+      console.error(error);
+      onLocalUpdate?.(note.id, { strikes } as unknown as Partial<Note>);
+    }
+  };
+
+  const getRelPos = (e: React.PointerEvent) => {
+    const el = imgWrapRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height,
+    };
+  };
+
+  const onStrikeDown = (e: React.PointerEvent) => {
+    if (!strikeMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    const p = getRelPos(e);
+    if (!p) return;
+    drawStartRef.current = p;
+    setTempStrike({ x1: p.x, y1: p.y, x2: p.x, y2: p.y });
+  };
+  const onStrikeMove = (e: React.PointerEvent) => {
+    if (!strikeMode || !drawStartRef.current) return;
+    const p = getRelPos(e);
+    if (!p) return;
+    setTempStrike({
+      x1: drawStartRef.current.x,
+      y1: drawStartRef.current.y,
+      x2: p.x,
+      y2: p.y,
+    });
+  };
+  const onStrikeUp = () => {
+    if (!strikeMode || !tempStrike) {
+      drawStartRef.current = null;
+      return;
+    }
+    const dx = tempStrike.x2 - tempStrike.x1;
+    const dy = tempStrike.y2 - tempStrike.y1;
+    drawStartRef.current = null;
+    setTempStrike(null);
+    if (Math.hypot(dx, dy) < 0.01) return; // ignore taps
+    void persistStrikes([...strikes, tempStrike]);
+  };
+
+  const undoStrike = () => {
+    if (strikes.length === 0) return;
+    void persistStrikes(strikes.slice(0, -1));
+  };
 
   const isResolved = note.status === "resolved";
 
