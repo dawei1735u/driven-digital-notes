@@ -66,6 +66,7 @@ function IpadPage() {
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [pasteOk, setPasteOk] = useState(false);
   const [ytLoading, setYtLoading] = useState(false);
+  const [ytUrl, setYtUrl] = useState("");
   const summarizeYt = useServerFn(summarizeYouTube);
 
   const flashPasteOk = () => {
