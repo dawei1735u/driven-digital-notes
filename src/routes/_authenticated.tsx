@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, isRedirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyAccessStatus } from "@/lib/admin.functions";
 
@@ -28,11 +28,26 @@ export const Route = createFileRoute("/_authenticated")({
         });
       }
     } catch (e) {
-      // Re-throw redirect; for any other error fall through (server/network).
-      if (e && typeof e === "object" && "to" in (e as Record<string, unknown>)) {
-        throw e;
-      }
-      throw e;
+      if (isRedirect(e)) throw e;
+      // Server/network error — fall through to MFA check.
+    }
+
+    // Enforce TOTP 2FA for every signed-in user.
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const hasVerifiedTotp = (factors?.totp ?? []).some((f) => f.status === "verified");
+      throw redirect({
+        to: hasVerifiedTotp ? "/mfa-verify" : "/mfa-setup",
+        search: { redirect: location.href } as never,
+      });
+    }
+    if (aal && aal.currentLevel === "aal1" && aal.nextLevel === "aal1") {
+      // No factor enrolled yet — force enrollment.
+      throw redirect({
+        to: "/mfa-setup",
+        search: { redirect: location.href } as never,
+      });
     }
   },
   component: () => <Outlet />,
