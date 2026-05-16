@@ -478,6 +478,7 @@ function IpadPage() {
           </div>
           <div>
             <div
+              ref={noteWrapRef}
               style={{
                 maxHeight: "70vh",
                 overflowY: "auto",
