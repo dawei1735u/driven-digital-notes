@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil } from "lucide-react";
+import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil, PenLine, Undo2 } from "lucide-react";
+
+type Strike = { x1: number; y1: number; x2: number; y2: number };
 
 function CornerResizeIcon({ className }: { className?: string }) {
   return (
@@ -61,6 +63,74 @@ export function NoteCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
+  const [strikeMode, setStrikeMode] = useState(false);
+  const strikes: Strike[] = Array.isArray((note as unknown as { strikes?: Strike[] }).strikes)
+    ? ((note as unknown as { strikes: Strike[] }).strikes)
+    : [];
+  const imgWrapRef = useRef<HTMLDivElement>(null);
+  const drawStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [tempStrike, setTempStrike] = useState<Strike | null>(null);
+
+  const persistStrikes = async (next: Strike[]) => {
+    onLocalUpdate?.(note.id, { strikes: next } as unknown as Partial<Note>);
+    const { error } = await supabase
+      .from("notes")
+      .update({ strikes: next } as never)
+      .eq("id", note.id);
+    if (error) {
+      console.error(error);
+      onLocalUpdate?.(note.id, { strikes } as unknown as Partial<Note>);
+    }
+  };
+
+  const getRelPos = (e: React.PointerEvent) => {
+    const el = imgWrapRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height,
+    };
+  };
+
+  const onStrikeDown = (e: React.PointerEvent) => {
+    if (!strikeMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    const p = getRelPos(e);
+    if (!p) return;
+    drawStartRef.current = p;
+    setTempStrike({ x1: p.x, y1: p.y, x2: p.x, y2: p.y });
+  };
+  const onStrikeMove = (e: React.PointerEvent) => {
+    if (!strikeMode || !drawStartRef.current) return;
+    const p = getRelPos(e);
+    if (!p) return;
+    setTempStrike({
+      x1: drawStartRef.current.x,
+      y1: drawStartRef.current.y,
+      x2: p.x,
+      y2: p.y,
+    });
+  };
+  const onStrikeUp = () => {
+    if (!strikeMode || !tempStrike) {
+      drawStartRef.current = null;
+      return;
+    }
+    const dx = tempStrike.x2 - tempStrike.x1;
+    const dy = tempStrike.y2 - tempStrike.y1;
+    drawStartRef.current = null;
+    setTempStrike(null);
+    if (Math.hypot(dx, dy) < 0.01) return; // ignore taps
+    void persistStrikes([...strikes, tempStrike]);
+  };
+
+  const undoStrike = () => {
+    if (strikes.length === 0) return;
+    void persistStrikes(strikes.slice(0, -1));
+  };
 
   const isResolved = note.status === "resolved";
 
@@ -161,15 +231,84 @@ export function NoteCard({
         <span className="rounded-full bg-[var(--ink)]/10 px-2 py-0.5">
           {note.shift}
         </span>
+        <button
+          onClick={() => setStrikeMode((v) => !v)}
+          className={
+            "inline-flex items-center gap-1 rounded p-1 hover:bg-[var(--ink)]/10 " +
+            (strikeMode ? "bg-[var(--ink)] text-white hover:bg-[var(--ink)]/85" : "opacity-60 hover:opacity-100")
+          }
+          aria-pressed={strikeMode}
+          title={strikeMode ? "Exit strike mode" : "Draw strike-through on items"}
+        >
+          <PenLine className="h-3.5 w-3.5" />
+        </button>
+        {strikes.length > 0 && (
+          <button
+            onClick={undoStrike}
+            className="inline-flex items-center gap-1 rounded p-1 opacity-60 hover:bg-[var(--ink)]/10 hover:opacity-100"
+            title="Undo last strike"
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
-      <div className="mb-3 overflow-hidden rounded-sm bg-white/30">
+      <div
+        ref={imgWrapRef}
+        className="relative mb-3 overflow-hidden rounded-sm bg-white/30"
+        style={strikeMode ? { touchAction: "none" } : undefined}
+        onPointerDown={onStrikeDown}
+        onPointerMove={onStrikeMove}
+        onPointerUp={onStrikeUp}
+        onPointerCancel={onStrikeUp}
+      >
         <img
           src={note.image_url}
           alt={`Handwritten note by ${note.written_by}`}
-          className="block w-full"
+          className="block w-full select-none"
+          draggable={false}
           loading="lazy"
         />
+        <svg
+          viewBox="0 0 1 1"
+          preserveAspectRatio="none"
+          className={
+            "pointer-events-none absolute inset-0 h-full w-full " +
+            (strikeMode ? "cursor-crosshair" : "")
+          }
+        >
+          {strikes.map((s, i) => (
+            <line
+              key={i}
+              x1={s.x1}
+              y1={s.y1}
+              x2={s.x2}
+              y2={s.y2}
+              stroke="#dc2626"
+              strokeWidth={0.012}
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+              style={{ strokeWidth: 3 } as React.CSSProperties}
+            />
+          ))}
+          {tempStrike && (
+            <line
+              x1={tempStrike.x1}
+              y1={tempStrike.y1}
+              x2={tempStrike.x2}
+              y2={tempStrike.y2}
+              stroke="#dc2626"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+              style={{ strokeWidth: 3 } as React.CSSProperties}
+            />
+          )}
+        </svg>
+        {strikeMode && (
+          <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full bg-[var(--ink)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white shadow">
+            Strike mode — drag across an item
+          </div>
+        )}
       </div>
 
       <button
