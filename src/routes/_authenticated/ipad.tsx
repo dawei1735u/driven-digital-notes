@@ -294,7 +294,7 @@ function IpadPage() {
         const { error: updErr } = await supabase
           .from("notes")
           .update({
-            written_by: writtenBy.trim(),
+            written_by: author,
             shift,
             apartment: apartment.trim() || null,
             category,
@@ -310,7 +310,7 @@ function IpadPage() {
       } else {
         // Bucket is private — store the storage path. Monitor signs URLs at view time.
         const { error: insErr } = await supabase.from("notes").insert({
-          written_by: writtenBy.trim(),
+          written_by: author,
           shift,
           apartment: apartment.trim() || null,
           category,
