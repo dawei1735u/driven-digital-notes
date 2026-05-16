@@ -19,6 +19,10 @@ export interface HandwritingCanvasHandle {
   resetNumbering: () => void;
   /** Cancel a pending stamp (if any). */
   cancelStamp: () => void;
+  /** Paste wrapped text at the top of the unused area. */
+  pasteText: (text: string) => void;
+  /** Paste an image (data URL or signed URL) scaled to fit, at the top of the unused area. */
+  pasteImage: (url: string) => Promise<void>;
 }
 
 interface Props {
@@ -45,6 +49,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
     const stampDraggingRef = useRef(false);
     const lastStampPosRef = useRef<{ x: number; y: number } | null>(null);
     const numberCounterRef = useRef<number>(1);
+    const pasteCursorYRef = useRef<number>(0);
     const [extraHeight, setExtraHeight] = useState(0);
 
     // Paint the sticky-note yellow background.
@@ -255,6 +260,85 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         stampPendingRef.current = null;
         if (canvasRef.current) canvasRef.current.style.cursor = "crosshair";
       },
+      pasteText: (text) => {
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext("2d");
+        if (!canvas || !ctx) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const marginX = 24 * dpr;
+        const fontPx = 22 * dpr;
+        const lineHeight = Math.round(fontPx * 1.35);
+        const maxWidth = canvas.width - marginX * 2;
+        ctx.save();
+        ctx.fillStyle = "#1a1a1a";
+        ctx.font = `400 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
+        ctx.textBaseline = "top";
+        ctx.textAlign = "left";
+
+        // Word-wrap each paragraph.
+        const paragraphs = text.replace(/\r\n/g, "\n").split("\n");
+        const lines: string[] = [];
+        for (const para of paragraphs) {
+          if (!para.trim()) { lines.push(""); continue; }
+          const words = para.split(/\s+/);
+          let current = "";
+          for (const w of words) {
+            const next = current ? current + " " + w : w;
+            if (ctx.measureText(next).width <= maxWidth) {
+              current = next;
+            } else {
+              if (current) lines.push(current);
+              current = w;
+            }
+          }
+          if (current) lines.push(current);
+        }
+
+        if (pasteCursorYRef.current < 20 * dpr) pasteCursorYRef.current = 20 * dpr;
+        const neededBottom = pasteCursorYRef.current + lines.length * lineHeight + 20 * dpr;
+        if (neededBottom > canvas.height) {
+          // Grow visible area so user can see the pasted content.
+          const cssExtra = Math.ceil((neededBottom - canvas.height) / dpr) + 40;
+          setExtraHeight((h) => h + cssExtra);
+        }
+
+        let y = pasteCursorYRef.current;
+        for (const line of lines) {
+          ctx.fillText(line, marginX, y);
+          y += lineHeight;
+        }
+        ctx.restore();
+        pasteCursorYRef.current = y + 10 * dpr;
+        dirtyRef.current = true;
+      },
+      pasteImage: (url) =>
+        new Promise((resolve, reject) => {
+          const canvas = canvasRef.current;
+          const ctx = canvas?.getContext("2d");
+          if (!canvas || !ctx) return resolve();
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const marginX = 24 * dpr;
+            const maxWidth = canvas.width - marginX * 2;
+            const scale = Math.min(1, maxWidth / img.width);
+            const drawW = img.width * scale;
+            const drawH = img.height * scale;
+            if (pasteCursorYRef.current < 20 * dpr) pasteCursorYRef.current = 20 * dpr;
+            const neededBottom = pasteCursorYRef.current + drawH + 20 * dpr;
+            if (neededBottom > canvas.height) {
+              const cssExtra = Math.ceil((neededBottom - canvas.height) / dpr) + 40;
+              setExtraHeight((h) => h + cssExtra);
+            }
+            ctx.drawImage(img, marginX, pasteCursorYRef.current, drawW, drawH);
+            pasteCursorYRef.current += drawH + 12 * dpr;
+            dirtyRef.current = true;
+            resolve();
+          };
+          img.onerror = () => reject(new Error("Failed to load pasted image"));
+          img.src = url;
+        }),
     }));
 
     // Base height tracks container width via aspect ratio; extend grows it.
