@@ -20,7 +20,7 @@ function pathFromImageUrl(image_url: string | null | undefined): string | null {
 export const Route = createFileRoute("/_authenticated/monitor")({
   head: () => ({
     meta: [
-      { title: "PurposeDriven NoteTaking APP" },
+      { title: "Tasks" },
       {
         name: "description",
         content: "Live wall of open tasks.",
@@ -410,7 +410,9 @@ function MonitorPageInner() {
             <Home className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">PurposeDriven NoteTaking APP</h1>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              Tasks
+            </h1>
           </div>
         </div>
 

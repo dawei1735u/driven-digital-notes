@@ -5,17 +5,17 @@ import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 export const Route = createFileRoute("/whats-new")({
   head: () => ({
     meta: [
-      { title: "What's New — PurposeDriven NoteTaking APP" },
+      { title: "What's New — Tasks" },
       {
         name: "description",
         content:
-          "Latest PurposeDriven NoteTaking APP release notes — new features, improvements, and fixes for the doorman handoff board.",
+          "Latest Tasks release notes — new features, improvements, and fixes for the doorman handoff board.",
       },
-      { property: "og:title", content: "What's New — PurposeDriven NoteTaking APP" },
+      { property: "og:title", content: "What's New — Tasks" },
       {
         property: "og:description",
         content:
-          "Latest PurposeDriven NoteTaking APP release notes — new features, improvements, and fixes.",
+          "Latest Tasks release notes — new features, improvements, and fixes.",
       },
     ],
   }),
@@ -39,7 +39,7 @@ function PublicChangelogPage() {
           <Sparkles className="h-3.5 w-3.5" /> Latest release
         </div>
         <h1 className="mt-4 text-4xl font-bold tracking-tight">
-          What's new in PurposeDriven NoteTaking APP
+          What's new in Tasks
         </h1>
         <p className="mt-2 text-muted-foreground">
           A short summary of the most recent release. Administrators can view

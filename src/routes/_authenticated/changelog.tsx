@@ -7,7 +7,7 @@ import { getMyAdminContext } from "@/lib/admin.functions";
 export const Route = createFileRoute("/_authenticated/changelog")({
   head: () => ({
     meta: [
-      { title: "Changelog — PurposeDriven NoteTaking APP" },
+      { title: "Changelog — Tasks" },
       { name: "description", content: "Release notes and feature history for Tasks." },
     ],
   }),

@@ -6,7 +6,7 @@ import daveLogo from "@/assets/dave-logo.png";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PurposeDriven NoteTaking APP" },
+      { title: "Tasks" },
       {
         name: "description",
         content:
@@ -30,7 +30,9 @@ function Index() {
             alt="Design Ambition Vision Excellence monogram"
             className="mb-6 h-24 w-24 object-contain"
           />
-          <h1 className="text-5xl font-bold tracking-tight md:text-7xl">PurposeDriven NoteTaking APP</h1>
+          <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
+            Tasks
+          </h1>
         </div>
 
         <div className="grid w-full gap-6 md:grid-cols-2">
@@ -49,7 +51,7 @@ function Index() {
               Open on iPad with Apple Pencil
             </p>
             <div className="mt-8 inline-flex items-center text-sm font-semibold text-[var(--ink)]">
-              Open PurposeDriven NoteTaking APP →
+              Open Tasks →
             </div>
           </Link>
 
@@ -59,9 +61,9 @@ function Index() {
             style={{ transform: "rotate(0.8deg)" }}
           >
             <Monitor className="mb-6 h-10 w-10" />
-            <h2 className="text-3xl font-bold">PurposeDriven NoteTaking APP Dashboard</h2>
+            <h2 className="text-3xl font-bold">Tasks Dashboard</h2>
             <div className="mt-8 inline-flex items-center text-sm font-semibold">
-              Open PurposeDriven NoteTaking APP Board →
+              Open Tasks Board →
             </div>
           </Link>
         </div>
