@@ -33,6 +33,9 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 - Apple Pencil handwriting on `HandwritingCanvas` (pressure-aware strokes, exports a PNG into the `note-images` bucket).
 - **Pen / Eraser / Clear all** toolbar — eraser paints over with the sticky-note background color so exports stay opaque.
 - **Add space** (`+`) button extends the canvas height by 300px at a time; the canvas lives in a scrollable wrapper so notes can grow past the viewport.
+- **Bullet & Number stamps** — two toolbar buttons arm a sticky "stamp mode" with a pulsing on-canvas banner. Tap to drop a marker, or tap-and-drag to lay out a whole checklist in one motion (smart min-spacing prevents overlap). Numbering auto-increments across taps; **Reset #** restarts at 1.
+- **Paste from clipboard** — `Cmd/Ctrl+V` anywhere on `/ipad` (or the **Paste** toolbar button for touch) drops the clipboard contents into the note. Text is word-wrapped at the page margins; images are scaled to fit and the canvas auto-grows to fit pasted content.
+- **YouTube AI summary** — paste a YouTube URL into the toolbar input and hit **Summarize** (or Enter). A server function pulls the video's caption track (preferring manual English, falling back to any English, then translating non-English captions), feeds the transcript to Lovable AI (Gemini 2.5 Flash), and inserts a 4–6 bullet summary into the note. If no captions exist, falls back to a best-guess summary from the title/channel and labels it as such.
 - **No-select CSS** on the canvas prevents iOS from highlighting the page when the Pencil first touches down.
 - **Personal mode** — the "Note details" side panel (Written by / Shift / Apartment / Category) has been removed; the canvas spans the full width. Metadata is still saved per note using defaults (writtenBy from the signed-in doorman, shift = Morning, category = Package).
 - Edit mode (`/ipad?edit=<id>`) loads the existing PNG back into the canvas via `HandwritingCanvas.loadFromUrl` and updates the same `notes` row on save instead of inserting.
@@ -82,6 +85,7 @@ src/
     EditNoteDialog.tsx
   lib/
     admin.functions.ts         # createServerFn — admin-gated reads/writes
+    youtube.functions.ts       # createServerFn — caption-scrape + AI summary
     changelog.ts               # source of truth for /changelog
   integrations/supabase/       # auto-generated — do not edit
 supabase/
@@ -102,6 +106,7 @@ bun run dev      # vite dev server
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.12.0** — `/ipad`: bullet & number stamps (with tap-and-drag and auto-numbering), clipboard paste (text + images) via Cmd/Ctrl+V or toolbar button, and an AI-powered YouTube summary tool that uses the video's captions when available.
 - **1.11.0** — Personal-mode iPad: removed the note-details side panel so the canvas is full-width. Renamed every user-facing "ShiftNotes" / "Shift Handoff" string to "Tasks" across meta titles & descriptions (`/`, root, `/monitor`, `/ipad`).
 - **1.10.0** — iPad: no-select canvas + extendable writing space (`+` add space button).
 - **1.9.0** — Login: show/hide password toggle, forgot-password flow, `/reset-password` page.
