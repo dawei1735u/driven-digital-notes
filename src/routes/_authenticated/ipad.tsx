@@ -251,7 +251,7 @@ function IpadPage() {
           </button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[1fr_320px]">
+        <div>
           <div>
             <div
               style={{
