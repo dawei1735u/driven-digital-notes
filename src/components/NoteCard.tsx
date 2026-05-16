@@ -49,6 +49,7 @@ export function NoteCard({
   onDragStart,
   onLocalUpdate,
   onEdit,
+  onResizeStart,
 }: {
   note: Note;
   width: number;
@@ -56,6 +57,7 @@ export function NoteCard({
   onDragStart?: (id: string, e: React.PointerEvent) => void;
   onLocalUpdate?: (id: string, patch: Partial<Note>) => void;
   onEdit?: (id: string) => void;
+  onResizeStart?: (id: string, e: React.PointerEvent) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
