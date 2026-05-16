@@ -118,6 +118,20 @@ function IpadPage() {
   const [recording, setRecording] = useState<Recording | null>(null);
   const [transcribing, setTranscribing] = useState(false);
   const transcribeFn = useServerFn(transcribeAudio);
+  const fetchWorkspace = useServerFn(getMyWorkspaceId);
+  const workspaceIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { workspaceId } = await fetchWorkspace();
+        if (!cancelled) workspaceIdRef.current = workspaceId;
+      } catch {
+        // non-fatal; insert will fail RLS if truly broken
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [fetchWorkspace]);
   const typedRef = useRef<HTMLTextAreaElement>(null);
   const noteWrapRef = useRef<HTMLDivElement>(null);
 
