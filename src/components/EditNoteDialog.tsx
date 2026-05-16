@@ -14,15 +14,6 @@ import { PenLine } from "lucide-react";
 
 type Note = Tables<"notes">;
 
-const SHIFTS = ["Morning", "Afternoon", "Evening", "Overnight"];
-const CATEGORIES = [
-  "Package",
-  "Maintenance",
-  "Visitor",
-  "Security",
-  "Resident Request",
-  "Other",
-];
 
 export function EditNoteDialog({
   note,
