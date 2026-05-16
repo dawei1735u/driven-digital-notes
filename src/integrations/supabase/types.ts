@@ -50,6 +50,7 @@ export type Database = {
           position_y: number | null
           shift: string
           status: string
+          strikes: Json
           transcribed_text: string | null
           updated_at: string
           width: number | null
@@ -66,6 +67,7 @@ export type Database = {
           position_y?: number | null
           shift: string
           status?: string
+          strikes?: Json
           transcribed_text?: string | null
           updated_at?: string
           width?: number | null
@@ -82,6 +84,7 @@ export type Database = {
           position_y?: number | null
           shift?: string
           status?: string
+          strikes?: Json
           transcribed_text?: string | null
           updated_at?: string
           width?: number | null
