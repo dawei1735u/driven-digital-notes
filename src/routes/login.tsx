@@ -10,8 +10,8 @@ export const Route = createFileRoute("/login")({
   }),
   head: () => ({
     meta: [
-      { title: "Sign in — Tasks" },
-      { name: "description", content: "Sign in to access the Tasks admin panel." },
+      { title: "Sign in — PurposeDriven NoteTaking APP" },
+      { name: "description", content: "Sign in to access the PurposeDriven NoteTaking APP admin panel." },
     ],
   }),
   component: LoginPage,
@@ -132,7 +132,7 @@ function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-xl">
         <Link to="/" className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-          ← Tasks
+          ← PurposeDriven NoteTaking APP
         </Link>
         <h1 className="mt-3 text-2xl font-bold">
           {mode === "login" ? contextHeading : "Create account"}
