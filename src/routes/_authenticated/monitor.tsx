@@ -523,54 +523,11 @@ function MonitorPageInner() {
           <Filter className="h-3.5 w-3.5" /> Filter
         </span>
         <FilterGroup
-          label="Shift"
-          value={shiftFilter}
-          options={shifts}
-          onChange={setShiftFilter}
-        />
-        <FilterGroup
-          label="Category"
-          value={categoryFilter}
-          options={categories}
-          onChange={setCategoryFilter}
-        />
-        <FilterGroup
           label="Status"
           value={statusFilter}
           options={["open", "resolved"]}
           onChange={(v) => setStatusFilter(v as "open" | "resolved" | "all")}
         />
-        <div className="relative ml-2">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
-          <input
-            type="search"
-            value={unitQuery}
-            onChange={(e) => setUnitQuery(e.target.value)}
-            placeholder="Search apartment / unit…"
-            className="w-56 rounded-full border border-white/15 bg-white/5 py-1 pl-8 pr-7 text-xs text-white placeholder:text-white/40 focus:border-amber-300 focus:outline-none"
-          />
-          {unitQuery && (
-            <button
-              onClick={() => setUnitQuery("")}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-white/50 hover:bg-white/10 hover:text-white"
-              aria-label="Clear search"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          )}
-        </div>
-        {(shiftFilter !== "all" || categoryFilter !== "all" || unitQuery) && (
-          <button
-            onClick={() => {
-              setShiftFilter("all");
-              setCategoryFilter("all");
-              setUnitQuery("");
-            }}
-            className="ml-auto rounded-md px-2 py-1 text-xs text-white/60 hover:bg-white/10 hover:text-white"
-          >
-            Clear filters
-          </button>
-        )}
       </div>
 
       <section className="p-2">
