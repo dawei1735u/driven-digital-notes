@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { NoteCard } from "@/components/NoteCard";
 import { EditNoteDialog } from "@/components/EditNoteDialog";
-import { Minus, Plus, PenLine, Home, Filter, LogOut } from "lucide-react";
+import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic } from "lucide-react";
 
 type Note = Tables<"notes">;
 
