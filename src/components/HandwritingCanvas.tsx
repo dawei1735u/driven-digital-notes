@@ -17,10 +17,14 @@ export interface HandwritingCanvasHandle {
   stampNext: (type: "bullet" | "number") => void;
   /** Reset the auto-incrementing number counter back to 1. */
   resetNumbering: () => void;
+  /** Cancel a pending stamp (if any). */
+  cancelStamp: () => void;
 }
 
 interface Props {
   className?: string;
+  /** Called after a pending stamp is placed on the canvas. */
+  onStampPlaced?: (type: "bullet" | "number") => void;
 }
 
 /**
