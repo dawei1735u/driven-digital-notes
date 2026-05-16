@@ -5,7 +5,7 @@ import {
   type HandwritingCanvasHandle,
 } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste, Youtube } from "lucide-react";
+import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste, Youtube, Type, PenLine } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
 
@@ -36,7 +36,58 @@ const CATEGORIES = [
   "Other",
 ];
 
+/** Render typed text to a sticky-note PNG matching the handwriting canvas style. */
+async function renderTypedNoteToBlob(text: string): Promise<Blob | null> {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cssW = 1000;
+  const fontPx = 28 * dpr;
+  const lineHeight = Math.round(fontPx * 1.4);
+  const marginX = 36 * dpr;
+  const marginY = 36 * dpr;
+  const w = Math.floor(cssW * dpr);
+
+  const measure = document.createElement("canvas").getContext("2d")!;
+  measure.font = `500 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
+  const maxWidth = w - marginX * 2;
+  const lines: string[] = [];
+  for (const para of text.replace(/\r\n/g, "\n").split("\n")) {
+    if (!para.trim()) { lines.push(""); continue; }
+    const words = para.split(/\s+/);
+    let current = "";
+    for (const word of words) {
+      const next = current ? current + " " + word : word;
+      if (measure.measureText(next).width <= maxWidth) {
+        current = next;
+      } else {
+        if (current) lines.push(current);
+        current = word;
+      }
+    }
+    if (current) lines.push(current);
+  }
+  const minH = Math.floor((cssW * 3) / 3.5) * dpr;
+  const contentH = marginY * 2 + lines.length * lineHeight;
+  const h = Math.max(minH, contentH);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#fff2a8";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#1a1a1a";
+  ctx.font = `500 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
+  ctx.textBaseline = "top";
+  let y = marginY;
+  for (const line of lines) {
+    ctx.fillText(line, marginX, y);
+    y += lineHeight;
+  }
+  return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
+}
+
 function IpadPage() {
+
   const canvasRef = useRef<HandwritingCanvasHandle>(null);
   const navigate = useNavigate();
   const { edit: editId } = useSearch({ from: "/_authenticated/ipad" });
@@ -52,6 +103,8 @@ function IpadPage() {
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
+  const [mode, setMode] = useState<"handwrite" | "type">("handwrite");
+  const [typedText, setTypedText] = useState("");
 
   const armStamp = (type: "bullet" | "number") => {
     if (pendingStamp === type) {
@@ -265,16 +318,23 @@ function IpadPage() {
 
   const onSave = async () => {
     setError(null);
-    if (canvasRef.current?.isEmpty()) {
+    if (mode === "handwrite" && canvasRef.current?.isEmpty()) {
       setError("Please write something on the note first.");
+      return;
+    }
+    if (mode === "type" && !typedText.trim()) {
+      setError("Please type something on the note first.");
       return;
     }
     const author = writtenBy.trim() || "Owner";
 
     setSaving(true);
     try {
-      const blob = await canvasRef.current!.toBlob();
-      if (!blob) throw new Error("Could not export the drawing.");
+      const blob =
+        mode === "handwrite"
+          ? await canvasRef.current!.toBlob()
+          : await renderTypedNoteToBlob(typedText);
+      if (!blob) throw new Error("Could not export the note.");
 
       const ts = Date.now();
       const rand = Math.random().toString(36).slice(2, 10);
@@ -318,6 +378,7 @@ function IpadPage() {
         });
         if (insErr) throw insErr;
         canvasRef.current?.clear();
+        setTypedText("");
         setApartment("");
         setSavedAt(Date.now());
         setTimeout(() => setSavedAt(null), 2500);
@@ -368,6 +429,32 @@ function IpadPage() {
         </div>
 
         <div>
+          <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
+            <button
+              onClick={() => setMode("handwrite")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "handwrite"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "handwrite"}
+            >
+              <PenLine className="h-4 w-4" /> Handwrite
+            </button>
+            <button
+              onClick={() => setMode("type")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "type"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "type"}
+            >
+              <Type className="h-4 w-4" /> Type
+            </button>
+          </div>
           <div>
             <div
               style={{
@@ -378,30 +465,49 @@ function IpadPage() {
                 position: "relative",
               }}
             >
-              <ClientOnly
-                fallback={
-                  <div
-                    style={{
-                      aspectRatio: "3.5 / 3",
-                      width: "100%",
-                      background: "var(--sticky-yellow)",
-                      borderRadius: "6px",
-                    }}
-                  />
-                }
-              >
-                <HandwritingCanvas ref={canvasRef} />
-              </ClientOnly>
-              {pendingStamp && (
-                <div
-                  className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 animate-pulse rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-lg"
-                  role="status"
-                  aria-live="polite"
-                >
-                  {pendingStamp === "bullet"
-                    ? "• Tap the canvas to place a bullet"
-                    : "# Tap the canvas to place the next number"}
-                </div>
+              {mode === "handwrite" ? (
+                <>
+                  <ClientOnly
+                    fallback={
+                      <div
+                        style={{
+                          aspectRatio: "3.5 / 3",
+                          width: "100%",
+                          background: "var(--sticky-yellow)",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    }
+                  >
+                    <HandwritingCanvas ref={canvasRef} />
+                  </ClientOnly>
+                  {pendingStamp && (
+                    <div
+                      className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 animate-pulse rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-lg"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      {pendingStamp === "bullet"
+                        ? "• Tap the canvas to place a bullet"
+                        : "# Tap the canvas to place the next number"}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <textarea
+                  value={typedText}
+                  onChange={(e) => setTypedText(e.target.value)}
+                  placeholder="Type your note here…"
+                  className="block w-full resize-y rounded-md p-6 text-lg leading-relaxed text-foreground outline-none placeholder:text-foreground/40"
+                  style={{
+                    background: "var(--sticky-yellow)",
+                    minHeight: "60vh",
+                    boxShadow:
+                      "0 14px 28px -10px rgba(0,0,0,0.25), 0 6px 12px -6px rgba(0,0,0,0.18)",
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+                  }}
+                />
               )}
             </div>
             {pendingStamp && (
