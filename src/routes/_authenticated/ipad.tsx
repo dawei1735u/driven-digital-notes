@@ -429,6 +429,32 @@ function IpadPage() {
         </div>
 
         <div>
+          <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
+            <button
+              onClick={() => setMode("handwrite")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "handwrite"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "handwrite"}
+            >
+              <PenLine className="h-4 w-4" /> Handwrite
+            </button>
+            <button
+              onClick={() => setMode("type")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "type"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "type"}
+            >
+              <Type className="h-4 w-4" /> Type
+            </button>
+          </div>
           <div>
             <div
               style={{
@@ -439,30 +465,49 @@ function IpadPage() {
                 position: "relative",
               }}
             >
-              <ClientOnly
-                fallback={
-                  <div
-                    style={{
-                      aspectRatio: "3.5 / 3",
-                      width: "100%",
-                      background: "var(--sticky-yellow)",
-                      borderRadius: "6px",
-                    }}
-                  />
-                }
-              >
-                <HandwritingCanvas ref={canvasRef} />
-              </ClientOnly>
-              {pendingStamp && (
-                <div
-                  className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 animate-pulse rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-lg"
-                  role="status"
-                  aria-live="polite"
-                >
-                  {pendingStamp === "bullet"
-                    ? "• Tap the canvas to place a bullet"
-                    : "# Tap the canvas to place the next number"}
-                </div>
+              {mode === "handwrite" ? (
+                <>
+                  <ClientOnly
+                    fallback={
+                      <div
+                        style={{
+                          aspectRatio: "3.5 / 3",
+                          width: "100%",
+                          background: "var(--sticky-yellow)",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    }
+                  >
+                    <HandwritingCanvas ref={canvasRef} />
+                  </ClientOnly>
+                  {pendingStamp && (
+                    <div
+                      className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 animate-pulse rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-lg"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      {pendingStamp === "bullet"
+                        ? "• Tap the canvas to place a bullet"
+                        : "# Tap the canvas to place the next number"}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <textarea
+                  value={typedText}
+                  onChange={(e) => setTypedText(e.target.value)}
+                  placeholder="Type your note here…"
+                  className="block w-full resize-y rounded-md p-6 text-lg leading-relaxed text-foreground outline-none placeholder:text-foreground/40"
+                  style={{
+                    background: "var(--sticky-yellow)",
+                    minHeight: "60vh",
+                    boxShadow:
+                      "0 14px 28px -10px rgba(0,0,0,0.25), 0 6px 12px -6px rgba(0,0,0,0.18)",
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+                  }}
+                />
               )}
             </div>
             {pendingStamp && (
