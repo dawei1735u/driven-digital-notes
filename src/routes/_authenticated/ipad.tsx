@@ -426,7 +426,8 @@ function IpadPage() {
           : "webm";
         const aTs = Date.now();
         const aRand = Math.random().toString(36).slice(2, 10);
-        audioPath = `${aTs}-${aRand}.${ext}`;
+        const wsFolder = workspaceIdRef.current ?? "shared";
+        audioPath = `${wsFolder}/${aTs}-${aRand}.${ext}`;
         const { error: aUpErr } = await supabase.storage
           .from("note-audio")
           .upload(audioPath, recording.blob, {
