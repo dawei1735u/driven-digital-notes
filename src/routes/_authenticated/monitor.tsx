@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { NoteCard } from "@/components/NoteCard";
 import { EditNoteDialog } from "@/components/EditNoteDialog";
-import { Minus, Plus, PenLine, Home, Filter, Search, X, LogOut } from "lucide-react";
+import { Minus, Plus, PenLine, Home, Filter, LogOut } from "lucide-react";
 
 type Note = Tables<"notes">;
 
@@ -103,9 +103,6 @@ function MonitorPageInner() {
   const [error, setError] = useState<string | null>(null);
   const [noteSize, setNoteSize] = useState<number>(280);
   const [boardWidth, setBoardWidth] = useState<number>(1200);
-  const [shiftFilter, setShiftFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [unitQuery, setUnitQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"open" | "resolved" | "all">(
     "open",
   );
@@ -384,18 +381,7 @@ function MonitorPageInner() {
     };
   }, [notes]);
 
-  const shifts = Array.from(new Set(notes.map((n) => n.shift).filter(Boolean)));
-  const categories = Array.from(
-    new Set(notes.map((n) => n.category).filter((c): c is string => !!c)),
-  );
-
-  const q = unitQuery.trim().toLowerCase();
-  const filtered = notes.filter(
-    (n) =>
-      (shiftFilter === "all" || n.shift === shiftFilter) &&
-      (categoryFilter === "all" || n.category === categoryFilter) &&
-      (q === "" || (n.apartment ?? "").toLowerCase().includes(q)),
-  );
+  const filtered = notes;
 
   const positioned = autoLayout(filtered, noteSize, boardWidth);
   const boardHeight = Math.max(
@@ -523,54 +509,11 @@ function MonitorPageInner() {
           <Filter className="h-3.5 w-3.5" /> Filter
         </span>
         <FilterGroup
-          label="Shift"
-          value={shiftFilter}
-          options={shifts}
-          onChange={setShiftFilter}
-        />
-        <FilterGroup
-          label="Category"
-          value={categoryFilter}
-          options={categories}
-          onChange={setCategoryFilter}
-        />
-        <FilterGroup
           label="Status"
           value={statusFilter}
           options={["open", "resolved"]}
           onChange={(v) => setStatusFilter(v as "open" | "resolved" | "all")}
         />
-        <div className="relative ml-2">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
-          <input
-            type="search"
-            value={unitQuery}
-            onChange={(e) => setUnitQuery(e.target.value)}
-            placeholder="Search apartment / unit…"
-            className="w-56 rounded-full border border-white/15 bg-white/5 py-1 pl-8 pr-7 text-xs text-white placeholder:text-white/40 focus:border-amber-300 focus:outline-none"
-          />
-          {unitQuery && (
-            <button
-              onClick={() => setUnitQuery("")}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-white/50 hover:bg-white/10 hover:text-white"
-              aria-label="Clear search"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          )}
-        </div>
-        {(shiftFilter !== "all" || categoryFilter !== "all" || unitQuery) && (
-          <button
-            onClick={() => {
-              setShiftFilter("all");
-              setCategoryFilter("all");
-              setUnitQuery("");
-            }}
-            className="ml-auto rounded-md px-2 py-1 text-xs text-white/60 hover:bg-white/10 hover:text-white"
-          >
-            Clear filters
-          </button>
-        )}
       </div>
 
       <section className="p-2">
