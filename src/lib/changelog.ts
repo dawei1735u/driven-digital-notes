@@ -8,6 +8,30 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.12.0",
+    date: "2026-05-16",
+    title: "Task lists, paste, and AI YouTube summaries on /ipad",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Bullet & Number stamps on the canvas. Two new toolbar buttons (List / ListOrdered icons) arm a sticky 'stamp mode' — a pulsing banner across the top of the canvas tells you the next tap will drop a marker. Numbering auto-increments (1., 2., 3., …) across taps; a 'Reset #' button restarts at 1. Tap-and-drag places multiple markers in one gesture with smart min-spacing (40px for bullets, 56px for numbers) so they don't pile on top of each other. Cancel exits the mode without saving.",
+          "Tap-and-drag stamping. While in bullet/number mode the canvas captures pointer move events and drops additional markers as the pen sweeps across the page, so a checklist can be laid out in one continuous motion.",
+          "Clipboard paste into the canvas. Cmd/Ctrl+V anywhere on /ipad (outside form inputs) pastes the clipboard contents directly into the note. Text is word-wrapped at a 24px margin in a 22px sans serif and the cursor advances down the page. Images are scaled to fit within the page margins, drawn at the current paste position, and the cursor moves below them. A 'Paste' toolbar button calls navigator.clipboard.read() / readText() for iPad where there is no keyboard shortcut. The canvas auto-grows (extraHeight) when pasted content would overflow. A 'Pasted to the note.' confirmation flashes for 1.5s; permission/empty-clipboard errors surface as an amber banner.",
+          "YouTube summary tool. New 'Paste YouTube URL…' input + Summarize button in the toolbar (Enter also submits). Calls a TanStack server function (src/lib/youtube.functions.ts) that: (1) validates the URL (youtu.be, /watch?v=, /embed/, /shorts/, /v/), (2) fetches the watch page and parses ytInitialPlayerResponse to find the best caption track (preferring manual English, then any English, then any manual; non-English tracks are translated via tlang=en), (3) downloads the timed-text XML and strips tags/entities to a plain transcript, (4) sends the transcript (truncated to 25k chars) to google/gemini-2.5-flash via the Lovable AI gateway for a 4–6 bullet grounded summary, and (5) falls back to a title/channel-only best-guess summary when no captions exist. The inserted text is prefixed with the video title — channel, the youtu.be link, and a 'Summary based on transcript / auto-captions / translated captions / title' label so you can see how grounded the summary is, then pasted into the canvas via the same pasteText pipeline.",
+        ],
+      },
+      {
+        heading: "Files touched",
+        items: [
+          "src/components/HandwritingCanvas.tsx — new stampNext / cancelStamp / resetNumbering / pasteText / pasteImage imperative methods; stampDraggingRef + lastStampPosRef for drag-to-stamp; pasteCursorYRef for paste flow; min-spacing math scaled by devicePixelRatio.",
+          "src/routes/_authenticated/ipad.tsx — Bullet / Number / Reset # / Paste / YouTube input + Summarize toolbar buttons; pendingStamp banner with cancel; document-level 'paste' listener (skips form inputs); navigator.clipboard fallback for touch; ytUrl state + Enter-to-submit; pasteOk / pasteError status banners; ClipboardPaste & Youtube lucide icons.",
+          "src/lib/youtube.functions.ts — new createServerFn endpoint: URL validation, oEmbed metadata, watch-page scrape, caption track selection, XML transcript fetch + entity decode, Lovable AI gateway call, transcript-vs-fallback labeling.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.11.0",
     date: "2026-05-16",
     title: "Personal-mode iPad + Tasks rename across user-facing copy",
