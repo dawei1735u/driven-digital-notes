@@ -117,6 +117,12 @@ function MonitorPageInner() {
     offsetY: number;
     pointerId: number;
   } | null>(null);
+  const resizeRef = useRef<{
+    id: string;
+    startX: number;
+    startWidth: number;
+    pointerId: number;
+  } | null>(null);
   const pinchRef = useRef<{
     startDist: number;
     startSize: number;
@@ -233,7 +239,7 @@ function MonitorPageInner() {
           return u ? { ...n, image_url: u } : n;
         });
         // Don't clobber notes mid-drag
-        if (!dragRef.current) setNotes(resolved);
+        if (!dragRef.current && !resizeRef.current) setNotes(resolved);
       }
     };
     fetchNotes();
@@ -312,6 +318,58 @@ function MonitorPageInner() {
             position_x: finalNote.position_x,
             position_y: finalNote.position_y,
           })
+          .eq("id", finalNote.id);
+        if (error) console.error(error);
+      }
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, [notes]);
+
+  // Per-note resize handling
+  const onResizeStart = useCallback(
+    (id: string, e: React.PointerEvent) => {
+      const note = notes.find((n) => n.id === id);
+      if (!note) return;
+      const current = note.width ?? noteSize;
+      resizeRef.current = {
+        id,
+        startX: e.clientX,
+        startWidth: current,
+        pointerId: e.pointerId,
+      };
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    [notes, noteSize],
+  );
+
+  useEffect(() => {
+    const clamp = (n: number) => Math.min(800, Math.max(160, Math.round(n)));
+    const onMove = (e: PointerEvent) => {
+      const r = resizeRef.current;
+      if (!r || e.pointerId !== r.pointerId) return;
+      const next = clamp(r.startWidth + (e.clientX - r.startX));
+      setNotes((arr) =>
+        arr.map((n) => (n.id === r.id ? { ...n, width: next } : n)),
+      );
+    };
+    const onUp = async (e: PointerEvent) => {
+      const r = resizeRef.current;
+      if (!r || e.pointerId !== r.pointerId) return;
+      const finalNote = notes.find((n) => n.id === r.id);
+      resizeRef.current = null;
+      if (finalNote) {
+        const { error } = await supabase
+          .from("notes")
+          .update({ width: finalNote.width })
           .eq("id", finalNote.id);
         if (error) console.error(error);
       }
@@ -567,11 +625,12 @@ function MonitorPageInner() {
               >
                 <NoteCard
                   note={n}
-                  width={noteSize}
+                  width={n.width ?? noteSize}
                   onResolved={onResolved}
                   onDragStart={onDragStart}
                   onLocalUpdate={onLocalUpdate}
                   onEdit={(id) => setEditingId(id)}
+                  onResizeStart={onResizeStart}
                 />
               </div>
             ))}

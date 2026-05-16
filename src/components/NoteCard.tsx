@@ -2,6 +2,20 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { Check, Clock, MapPin, User, Calendar as CalIcon, GripVertical, RotateCcw, Pencil } from "lucide-react";
+
+function CornerResizeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 12 12" className={className} aria-hidden="true">
+      <path
+        d="M11 5 L5 11 M11 9 L9 11"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -35,6 +49,7 @@ export function NoteCard({
   onDragStart,
   onLocalUpdate,
   onEdit,
+  onResizeStart,
 }: {
   note: Note;
   width: number;
@@ -42,6 +57,7 @@ export function NoteCard({
   onDragStart?: (id: string, e: React.PointerEvent) => void;
   onLocalUpdate?: (id: string, patch: Partial<Note>) => void;
   onEdit?: (id: string) => void;
+  onResizeStart?: (id: string, e: React.PointerEvent) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
@@ -91,7 +107,7 @@ export function NoteCard({
 
   return (
     <div
-      className="flex flex-col p-4 text-[var(--ink)]"
+      className="relative flex flex-col p-4 text-[var(--ink)]"
       style={{
         width,
         background: colorForId(note.id),
@@ -182,6 +198,16 @@ export function NoteCard({
           ? isResolved ? "Reopening…" : "Resolving…"
           : isResolved ? "Mark Open" : "Mark Resolved"}
       </button>
+      {onResizeStart && (
+        <button
+          onPointerDown={(e) => onResizeStart(note.id, e)}
+          className="absolute bottom-1 right-1 inline-flex h-5 w-5 cursor-nwse-resize items-center justify-center rounded text-[var(--ink)]/60 hover:bg-[var(--ink)]/10 hover:text-[var(--ink)] touch-none"
+          aria-label="Resize note"
+          title="Drag to resize"
+        >
+          <CornerResizeIcon className="h-3 w-3" />
+        </button>
+      )}
     </div>
   );
 }
