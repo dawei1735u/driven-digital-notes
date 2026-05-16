@@ -327,6 +327,7 @@ function IpadPage() {
         });
         if (insErr) throw insErr;
         canvasRef.current?.clear();
+        setTypedText("");
         setApartment("");
         setSavedAt(Date.now());
         setTimeout(() => setSavedAt(null), 2500);
