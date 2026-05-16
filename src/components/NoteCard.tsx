@@ -231,15 +231,84 @@ export function NoteCard({
         <span className="rounded-full bg-[var(--ink)]/10 px-2 py-0.5">
           {note.shift}
         </span>
+        <button
+          onClick={() => setStrikeMode((v) => !v)}
+          className={
+            "inline-flex items-center gap-1 rounded p-1 hover:bg-[var(--ink)]/10 " +
+            (strikeMode ? "bg-[var(--ink)] text-white hover:bg-[var(--ink)]/85" : "opacity-60 hover:opacity-100")
+          }
+          aria-pressed={strikeMode}
+          title={strikeMode ? "Exit strike mode" : "Draw strike-through on items"}
+        >
+          <PenLine className="h-3.5 w-3.5" />
+        </button>
+        {strikes.length > 0 && (
+          <button
+            onClick={undoStrike}
+            className="inline-flex items-center gap-1 rounded p-1 opacity-60 hover:bg-[var(--ink)]/10 hover:opacity-100"
+            title="Undo last strike"
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
-      <div className="mb-3 overflow-hidden rounded-sm bg-white/30">
+      <div
+        ref={imgWrapRef}
+        className="relative mb-3 overflow-hidden rounded-sm bg-white/30"
+        style={strikeMode ? { touchAction: "none" } : undefined}
+        onPointerDown={onStrikeDown}
+        onPointerMove={onStrikeMove}
+        onPointerUp={onStrikeUp}
+        onPointerCancel={onStrikeUp}
+      >
         <img
           src={note.image_url}
           alt={`Handwritten note by ${note.written_by}`}
-          className="block w-full"
+          className="block w-full select-none"
+          draggable={false}
           loading="lazy"
         />
+        <svg
+          viewBox="0 0 1 1"
+          preserveAspectRatio="none"
+          className={
+            "pointer-events-none absolute inset-0 h-full w-full " +
+            (strikeMode ? "cursor-crosshair" : "")
+          }
+        >
+          {strikes.map((s, i) => (
+            <line
+              key={i}
+              x1={s.x1}
+              y1={s.y1}
+              x2={s.x2}
+              y2={s.y2}
+              stroke="#dc2626"
+              strokeWidth={0.012}
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+              style={{ strokeWidth: 3 } as React.CSSProperties}
+            />
+          ))}
+          {tempStrike && (
+            <line
+              x1={tempStrike.x1}
+              y1={tempStrike.y1}
+              x2={tempStrike.x2}
+              y2={tempStrike.y2}
+              stroke="#dc2626"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+              style={{ strokeWidth: 3 } as React.CSSProperties}
+            />
+          )}
+        </svg>
+        {strikeMode && (
+          <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full bg-[var(--ink)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white shadow">
+            Strike mode — drag across an item
+          </div>
+        )}
       </div>
 
       <button
