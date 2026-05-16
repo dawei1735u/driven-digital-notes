@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { NoteCard } from "@/components/NoteCard";
 import { EditNoteDialog } from "@/components/EditNoteDialog";
-import { Minus, Plus, PenLine, Home, Filter, Search, X, LogOut } from "lucide-react";
+import { Minus, Plus, PenLine, Home, Filter, LogOut } from "lucide-react";
 
 type Note = Tables<"notes">;
 
@@ -380,11 +380,6 @@ function MonitorPageInner() {
       window.removeEventListener("pointercancel", onUp);
     };
   }, [notes]);
-
-  const shifts = Array.from(new Set(notes.map((n) => n.shift).filter(Boolean)));
-  const categories = Array.from(
-    new Set(notes.map((n) => n.category).filter((c): c is string => !!c)),
-  );
 
   const filtered = notes;
 
