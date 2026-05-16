@@ -486,6 +486,7 @@ function IpadPage() {
           image_url: path,
           audio_url: audioPath,
           transcribed_text: transcript,
+          workspace_id: workspaceIdRef.current,
         });
         if (insErr) throw insErr;
         canvasRef.current?.clear();
