@@ -41,6 +41,7 @@ export type Database = {
       notes: {
         Row: {
           apartment: string | null
+          audio_url: string | null
           category: string | null
           created_at: string
           display_date: string
@@ -58,6 +59,7 @@ export type Database = {
         }
         Insert: {
           apartment?: string | null
+          audio_url?: string | null
           category?: string | null
           created_at?: string
           display_date?: string
@@ -75,6 +77,7 @@ export type Database = {
         }
         Update: {
           apartment?: string | null
+          audio_url?: string | null
           category?: string | null
           created_at?: string
           display_date?: string
