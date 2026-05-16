@@ -110,7 +110,9 @@ function IpadPage() {
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [penColor, setPenColor] = useState<string>("#1a1a1a");
   const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
-  const [mode, setMode] = useState<"handwrite" | "type" | "voice">(initialMode ?? "handwrite");
+  const [mode, setMode] = useState<"handwrite" | "type" | "voice">(
+    editId ? "handwrite" : (initialMode ?? "handwrite"),
+  );
   const [typedText, setTypedText] = useState("");
   const [recording, setRecording] = useState<Recording | null>(null);
   const [transcribing, setTranscribing] = useState(false);
@@ -525,44 +527,46 @@ function IpadPage() {
         </div>
 
         <div>
-          <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
-            <button
-              onClick={() => setMode("handwrite")}
-              className={
-                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
-                (mode === "handwrite"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-accent")
-              }
-              aria-pressed={mode === "handwrite"}
-            >
-              <PenLine className="h-4 w-4" /> Handwrite
-            </button>
-            <button
-              onClick={() => setMode("type")}
-              className={
-                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
-                (mode === "type"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-accent")
-              }
-              aria-pressed={mode === "type"}
-            >
-              <Type className="h-4 w-4" /> Type
-            </button>
-            <button
-              onClick={() => setMode("voice")}
-              className={
-                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
-                (mode === "voice"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-accent")
-              }
-              aria-pressed={mode === "voice"}
-            >
-              <Mic className="h-4 w-4" /> Voice
-            </button>
-          </div>
+          {!isEdit && (
+            <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
+              <button
+                onClick={() => setMode("handwrite")}
+                className={
+                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                  (mode === "handwrite"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-accent")
+                }
+                aria-pressed={mode === "handwrite"}
+              >
+                <PenLine className="h-4 w-4" /> Handwrite
+              </button>
+              <button
+                onClick={() => setMode("type")}
+                className={
+                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                  (mode === "type"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-accent")
+                }
+                aria-pressed={mode === "type"}
+              >
+                <Type className="h-4 w-4" /> Type
+              </button>
+              <button
+                onClick={() => setMode("voice")}
+                className={
+                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                  (mode === "voice"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-accent")
+                }
+                aria-pressed={mode === "voice"}
+              >
+                <Mic className="h-4 w-4" /> Voice
+              </button>
+            </div>
+          )}
           <div>
             <div
               ref={noteWrapRef}
