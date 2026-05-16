@@ -14,6 +14,10 @@ import { VoiceRecorder, blobToBase64, type Recording } from "@/components/VoiceR
 export const Route = createFileRoute("/_authenticated/ipad")({
   validateSearch: (s: Record<string, unknown>) => ({
     edit: typeof s.edit === "string" ? s.edit : undefined,
+    mode:
+      s.mode === "type" || s.mode === "voice" || s.mode === "handwrite"
+        ? (s.mode as "type" | "voice" | "handwrite")
+        : undefined,
   }),
   head: () => ({
     meta: [
