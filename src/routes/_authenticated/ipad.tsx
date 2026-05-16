@@ -49,6 +49,17 @@ function IpadPage() {
   const [error, setError] = useState<string | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
+  const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
+
+  const armStamp = (type: "bullet" | "number") => {
+    if (pendingStamp === type) {
+      canvasRef.current?.cancelStamp();
+      setPendingStamp(null);
+    } else {
+      canvasRef.current?.stampNext(type);
+      setPendingStamp(type);
+    }
+  };
 
   const isEdit = !!editId;
 
