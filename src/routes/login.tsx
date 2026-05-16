@@ -3,6 +3,14 @@ import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+function friendlyAuthError(err: unknown) {
+  const message = err instanceof Error ? err.message : "Something went wrong";
+  if (message.toLowerCase().includes("invalid login credentials")) {
+    return "That email and password were not accepted. If you created this account with Google, use Continue with Google. Otherwise, use Forgot password to set a new password.";
+  }
+  return message;
+}
+
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
     reason: typeof search.reason === "string" ? search.reason : undefined,
@@ -75,13 +83,18 @@ function LoginPage() {
     setInfo(null);
     setLoading(true);
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+      setEmail(normalizedEmail);
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        });
         if (error) throw error;
         navigate({ to: destinationAfterAuth() });
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: normalizedEmail,
           password,
           options: {
             emailRedirectTo: window.location.origin + destinationAfterAuth(),
@@ -92,7 +105,7 @@ function LoginPage() {
         setMode("login");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -116,7 +129,9 @@ function LoginPage() {
     }
     setResetting(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const normalizedEmail = email.trim().toLowerCase();
+      setEmail(normalizedEmail);
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
@@ -144,6 +159,8 @@ function LoginPage() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-3">
           <input
             type="email"
+            autoComplete="email"
+            inputMode="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -153,6 +170,7 @@ function LoginPage() {
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
               required
               minLength={6}
               value={password}
