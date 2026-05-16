@@ -228,7 +228,7 @@ function IpadPage() {
             <ArrowLeft className="h-4 w-4" /> Home
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">
-            Shift<span className="text-primary">Notes</span> ·{" "}
+            Tasks ·{" "}
             {isEdit ? (
               <span className="inline-flex items-center gap-1">
                 <Pencil className="h-5 w-5" /> Edit
