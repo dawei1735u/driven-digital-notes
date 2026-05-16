@@ -52,6 +52,7 @@ export type Database = {
           status: string
           transcribed_text: string | null
           updated_at: string
+          width: number | null
           written_by: string
         }
         Insert: {
@@ -67,6 +68,7 @@ export type Database = {
           status?: string
           transcribed_text?: string | null
           updated_at?: string
+          width?: number | null
           written_by: string
         }
         Update: {
@@ -82,6 +84,7 @@ export type Database = {
           status?: string
           transcribed_text?: string | null
           updated_at?: string
+          width?: number | null
           written_by?: string
         }
         Relationships: []
