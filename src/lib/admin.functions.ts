@@ -29,7 +29,8 @@ export const getMyAccessStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { userId } = context;
-    const { data, error } = await (supabaseAdmin as any).rpc("is_user_allowed", {
+    const supabase = context.supabase as any;
+    const { data, error } = await supabase.rpc("is_user_allowed", {
       _user_id: userId,
     });
     if (error) throw new Error(error.message);
