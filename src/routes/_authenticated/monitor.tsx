@@ -103,9 +103,6 @@ function MonitorPageInner() {
   const [error, setError] = useState<string | null>(null);
   const [noteSize, setNoteSize] = useState<number>(280);
   const [boardWidth, setBoardWidth] = useState<number>(1200);
-  const [shiftFilter, setShiftFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [unitQuery, setUnitQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<"open" | "resolved" | "all">(
     "open",
   );
@@ -389,13 +386,7 @@ function MonitorPageInner() {
     new Set(notes.map((n) => n.category).filter((c): c is string => !!c)),
   );
 
-  const q = unitQuery.trim().toLowerCase();
-  const filtered = notes.filter(
-    (n) =>
-      (shiftFilter === "all" || n.shift === shiftFilter) &&
-      (categoryFilter === "all" || n.category === categoryFilter) &&
-      (q === "" || (n.apartment ?? "").toLowerCase().includes(q)),
-  );
+  const filtered = notes;
 
   const positioned = autoLayout(filtered, noteSize, boardWidth);
   const boardHeight = Math.max(
