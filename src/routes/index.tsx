@@ -51,7 +51,7 @@ function Index() {
               Open on iPad with Apple Pencil
             </p>
             <div className="mt-8 inline-flex items-center text-sm font-semibold text-[var(--ink)]">
-              Open /ipad →
+              Open Tasks →
             </div>
           </Link>
 
@@ -61,9 +61,9 @@ function Index() {
             style={{ transform: "rotate(0.8deg)" }}
           >
             <Monitor className="mb-6 h-10 w-10" />
-            <h2 className="text-3xl font-bold">Dashboard</h2>
+            <h2 className="text-3xl font-bold">Tasks Dashboard</h2>
             <div className="mt-8 inline-flex items-center text-sm font-semibold">
-              Open /monitor →
+              Open Tasks Board →
             </div>
           </Link>
         </div>
