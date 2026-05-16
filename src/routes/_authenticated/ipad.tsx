@@ -524,7 +524,7 @@ function IpadPage() {
                   autoCapitalize="off"
                   autoCorrect="off"
                   spellCheck={false}
-                  className="w-56 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+                  className="w-56 bg-transparent text-base outline-none placeholder:text-muted-foreground select-text [-webkit-user-select:text] [-webkit-touch-callout:default]"
                   aria-label="YouTube URL"
                 />
                 <button
