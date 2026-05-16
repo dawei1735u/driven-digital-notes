@@ -191,10 +191,9 @@ function IpadPage() {
         .ilike("email", email)
         .maybeSingle();
       if (cancelled) return;
-      if (data?.display_name) {
-        setWrittenBy(data.display_name);
-        setWrittenByLocked(true);
-      }
+      const name = data?.display_name?.trim() || email.split("@")[0];
+      setWrittenBy(name);
+      setWrittenByLocked(true);
     })();
     return () => {
       cancelled = true;
