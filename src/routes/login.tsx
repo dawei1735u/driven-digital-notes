@@ -26,6 +26,8 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   // Contextual heading based on where the user was trying to go.
   const target = redirectTo ?? "";
