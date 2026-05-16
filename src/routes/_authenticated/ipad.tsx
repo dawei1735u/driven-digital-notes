@@ -344,69 +344,8 @@ function IpadPage() {
               </div>
             )}
           </div>
-
-          <aside className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Note details
-            </h2>
-
-            <Field label="Written by">
-              <input
-                value={writtenBy}
-                onChange={(e) => setWrittenBy(e.target.value)}
-                placeholder="Your name"
-                readOnly={writtenByLocked && !isEdit}
-                className={
-                  "w-full rounded-lg border border-input bg-background px-3 py-3 text-base outline-none focus:border-primary " +
-                  (writtenByLocked && !isEdit ? "cursor-not-allowed opacity-80" : "")
-                }
-              />
-              {writtenByLocked && !isEdit && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Auto-filled from your approved doorman account.
-                </p>
-              )}
-            </Field>
-
-            <Field label="Shift">
-              <select
-                value={shift}
-                onChange={(e) => setShift(e.target.value)}
-                className="w-full rounded-lg border border-input bg-background px-3 py-3 text-base outline-none focus:border-primary"
-              >
-                {SHIFTS.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Apartment / unit">
-              <input
-                value={apartment}
-                onChange={(e) => setApartment(e.target.value)}
-                placeholder="e.g. 12B"
-                className="w-full rounded-lg border border-input bg-background px-3 py-3 text-base outline-none focus:border-primary"
-              />
-            </Field>
-
-            <Field label="Category">
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-lg border border-input bg-background px-3 py-3 text-base outline-none focus:border-primary"
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            </Field>
-
-            <p className="mt-4 text-xs text-muted-foreground">
-              Tip: rest your palm on the iPad — the canvas uses Apple Pencil
-              pointer events.
-            </p>
-          </aside>
         </div>
+
       </div>
     </main>
   );
