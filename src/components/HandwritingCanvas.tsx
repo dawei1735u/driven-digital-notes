@@ -48,6 +48,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
     const lastRef = useRef<{ x: number; y: number } | null>(null);
     const dirtyRef = useRef(false);
     const toolRef = useRef<"pen" | "eraser">("pen");
+    const colorRef = useRef<string>("#1a1a1a");
     const stampPendingRef = useRef<"bullet" | "number" | null>(null);
     const stampDraggingRef = useRef(false);
     const lastStampPosRef = useRef<{ x: number; y: number } | null>(null);
