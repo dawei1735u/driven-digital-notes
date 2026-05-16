@@ -1,6 +1,6 @@
-# DigitalNotes (Future Solutions)
+# Tasks (Future Solutions)
 
-Handwritten shift-handoff notes for building doormen — written on the iPad with Apple Pencil, instantly visible on the lobby monitor. Branded as **Future Solutions DigitalNotes** (D.A.V.E. — Design · Ambition · Vision · Excellence).
+Handwritten tasks — written on the iPad with Apple Pencil, instantly visible on the lobby monitor. Branded as **Future Solutions DigitalNotes** (D.A.V.E. — Design · Ambition · Vision · Excellence). This build is configured for personal use: the iPad capture screen is a full-width canvas with metadata fields hidden.
 
 - Preview: https://id-preview--3484a17f-9448-4b9c-96da-9e45faa6568d.lovable.app
 - Published: https://doorman-digital-notes.lovable.app
@@ -19,10 +19,10 @@ Handwritten shift-handoff notes for building doormen — written on the iPad wit
 
 | Route | Purpose | Access |
 |---|---|---|
-| `/` | Landing — DigitalNotes hero, Write a Note / Dashboard CTAs | Public |
+| `/` | Landing — Tasks hero, Write a Note / Dashboard CTAs | Public |
 | `/login` | Email+password & Google sign-in, show/hide password, forgot-password | Public |
 | `/reset-password` | Set a new password from the email recovery link | Public (token-gated) |
-| `/ipad` | Apple Pencil capture canvas + metadata sidebar | Authenticated + allowlisted |
+| `/ipad` | Apple Pencil capture canvas (full-width, no side panel) | Authenticated + allowlisted |
 | `/monitor` | Lobby board — live, filterable, per-note resize, pinch-zoom | Authenticated + allowlisted |
 | `/admin` | Stats, bulk actions, approved-users roster, backup status & history chart | Admin role |
 | `/changelog` | Release notes | Admin role |
@@ -34,7 +34,7 @@ Handwritten shift-handoff notes for building doormen — written on the iPad wit
 - **Pen / Eraser / Clear all** toolbar — eraser paints over with the sticky-note background color so exports stay opaque.
 - **Add space** (`+`) button extends the canvas height by 300px at a time; the canvas lives in a scrollable wrapper so notes can grow past the viewport.
 - **No-select CSS** on the canvas prevents iOS from highlighting the page when the Pencil first touches down.
-- "Written by" auto-fills (and locks) from the signed-in doorman's `allowed_users.display_name`.
+- **Personal mode** — the "Note details" side panel (Written by / Shift / Apartment / Category) has been removed; the canvas spans the full width. Metadata is still saved per note using defaults (writtenBy from the signed-in doorman, shift = Morning, category = Package).
 - Edit mode (`/ipad?edit=<id>`) loads the existing PNG back into the canvas via `HandwritingCanvas.loadFromUrl` and updates the same `notes` row on save instead of inserting.
 
 ### Lobby board (`/monitor`)
@@ -102,6 +102,7 @@ bun run dev      # vite dev server
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.11.0** — Personal-mode iPad: removed the note-details side panel so the canvas is full-width. Renamed every user-facing "ShiftNotes" / "Shift Handoff" string to "Tasks" across meta titles & descriptions (`/`, root, `/monitor`, `/ipad`).
 - **1.10.0** — iPad: no-select canvas + extendable writing space (`+` add space button).
 - **1.9.0** — Login: show/hide password toggle, forgot-password flow, `/reset-password` page.
 - **1.8.1** — Per-note resize on `/monitor` (new `notes.size_w` / `size_h` columns).

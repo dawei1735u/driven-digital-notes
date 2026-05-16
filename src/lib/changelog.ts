@@ -8,6 +8,30 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.11.0",
+    date: "2026-05-16",
+    title: "Personal-mode iPad + Tasks rename across user-facing copy",
+    sections: [
+      {
+        heading: "Changed",
+        items: [
+          "Removed the 'Note details' side panel on /ipad (Written by / Shift / Apartment / Category fields and the Apple Pencil tip). The capture grid collapsed from md:grid-cols-[1fr_320px] to a single column so the canvas now uses the full width of the layout. State for writtenBy / shift / apartment / category is still tracked in the component and saved with each note — defaults are auto-filled from the signed-in doorman record (writtenBy) and from the first option of each list (shift = 'Morning', category = 'Package') — but doormen no longer adjust them per note in this personal-use build.",
+          "Renamed every user-facing 'ShiftNotes' / 'Shift Handoff' string to 'Tasks'. Updated meta titles & descriptions on the home (/), root, /monitor, and /ipad routes so SEO + social previews now read 'Tasks' instead of 'Tasks — Digital Doorman Shift Handoff' / 'shift handoff note' wording. Historical changelog entries, migration files, and the internal localStorage key 'shiftnotes:noteSize' were left untouched so older browser preferences keep working.",
+        ],
+      },
+      {
+        heading: "Files touched",
+        items: [
+          "src/routes/_authenticated/ipad.tsx — removed <aside> with note details, collapsed grid to single column, updated head() description to 'Write a handwritten task on iPad.'.",
+          "src/routes/index.tsx — head().title changed to 'Tasks'; description rewritten without 'shift'.",
+          "src/routes/__root.tsx — meta description, og:description, twitter:description rewritten as 'Tasks is a digital system for creating and displaying handwritten notes.'.",
+          "src/routes/_authenticated/monitor.tsx — head() description changed to 'Live wall of open tasks.'.",
+        ],
+      },
+    ],
+  },
+  {
+
     version: "1.10.0",
     date: "2026-05-16",
     title: "iPad writing comfort: no-select canvas & extendable space",
