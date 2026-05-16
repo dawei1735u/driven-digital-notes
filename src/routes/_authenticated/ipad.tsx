@@ -424,7 +424,11 @@ function IpadPage() {
                 </button>
               </div>
             )}
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div
+              className="mt-4 flex flex-wrap gap-3 [&_button]:select-none [&_button]:[touch-action:manipulation] [&_button]:[-webkit-touch-callout:none] [&_button]:[-webkit-user-select:none]"
+              style={{ WebkitTouchCallout: "none", WebkitUserSelect: "none", userSelect: "none" }}
+              onContextMenu={(e) => e.preventDefault()}
+            >
               <button
                 onClick={() => selectTool("pen")}
                 className={
@@ -520,7 +524,7 @@ function IpadPage() {
                   autoCapitalize="off"
                   autoCorrect="off"
                   spellCheck={false}
-                  className="w-56 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+                  className="w-56 bg-transparent text-base outline-none placeholder:text-muted-foreground select-text [-webkit-user-select:text] [-webkit-touch-callout:default]"
                   aria-label="YouTube URL"
                 />
                 <button
