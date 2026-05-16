@@ -29,6 +29,20 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 
 ## Feature highlights
 
+### Pen color picker (new in 1.14.2)
+- **8-color swatch palette** on the `/ipad` toolbar — Black, Red, Blue, Green, Orange, Purple, Yellow, Pink. Tapping a swatch sets the active pen color and switches back to pen mode (so it works mid-erase).
+- **Custom color** — a hidden `<input type="color">` is wired to the last swatch so doormen can pick any hex value for highlights or annotations.
+- Active swatch shows a `border-2 border-foreground` ring; the canvas exposes `setColor` / `getColor` via its imperative handle, with `colorRef` driving both `ctx.strokeStyle` and `ctx.fillStyle` so bullet/number stamps inherit the chosen color too.
+
+### Simpler edit dialog (1.14.1)
+- `EditNoteDialog` on the lobby board now only exposes the fields that actually change day-to-day: **Written by**, **Status** (open / resolved), and **Display date**.
+- Removed the Shift, Apartment/Unit, and Category selects — they were vestigial after the personal-mode iPad rework (1.11.0) and added noise to every edit. The underlying columns on `notes` are still populated from defaults at creation time; this is purely a UI simplification.
+
+### Edit-mode safety (1.14.0)
+- Opening a note from the lobby via `/ipad?edit=<id>` now **locks the input mode to handwriting** — the handwrite / type / voice switcher is hidden while editing.
+  - Previously, tapping "Type" would unmount the canvas, blank out the loaded PNG, and silently overwrite the original note on save. Reported by a doorman who lost a note this way.
+- Initial mode defaults to `handwrite` whenever `editId` is present, regardless of any `?mode=` deep link, so the existing PNG always loads back into `HandwritingCanvas` via `loadFromUrl`.
+
 ### Voice notes (new in 1.13.0)
 - **Record + auto-transcribe** — both `/ipad` and `/monitor` expose a voice note flow. Recording uses the browser `MediaRecorder` API (`src/components/VoiceRecorder.tsx`) with start/stop/playback preview before saving.
 - **Transcription** — recorded audio is base64-encoded and sent to the `transcribeAudio` server function (`src/lib/voice.functions.ts`), which calls the Lovable AI Gateway (`google/gemini-2.5-flash`) for a verbatim transcript. No API key needed.
@@ -120,6 +134,9 @@ bun run dev      # vite dev server
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.14.2** — Pen color picker on `/ipad`: 8 preset swatches plus a custom hex picker, threaded into `HandwritingCanvas` via `setColor` / `getColor` so strokes and bullet/number stamps all inherit the chosen color.
+- **1.14.1** — `EditNoteDialog` simplified to Written by / Status / Display date — Shift, Apartment/Unit, and Category fields removed.
+- **1.14.0** — Edit-mode safety: hide the handwrite/type/voice switcher when opening a note via `/ipad?edit=<id>` and force initial mode to handwriting so existing notes can't be accidentally blanked.
 - **1.13.1** — Login: friendlier "invalid credentials" message that points users to Google sign-in or password reset; emails normalized (trim + lowercase); proper autocomplete attributes.
 - **1.13.0** — Voice notes end-to-end: record on `/ipad` or `/monitor`, auto-transcribe via Lovable AI (Gemini 2.5 Flash), store original audio in a private `note-audio` bucket, play back inline on each `NoteCard`. New `audio_url` column on `notes`, new `transcribeAudio` server function, and a `mode=voice` deep link on `/ipad`.
 - **1.12.0** — `/ipad`: bullet & number stamps (with tap-and-drag and auto-numbering), clipboard paste (text + images) via Cmd/Ctrl+V or toolbar button, and an AI-powered YouTube summary tool that uses the video's captions when available.
