@@ -239,7 +239,7 @@ function MonitorPageInner() {
           return u ? { ...n, image_url: u } : n;
         });
         // Don't clobber notes mid-drag
-        if (!dragRef.current) setNotes(resolved);
+        if (!dragRef.current && !resizeRef.current) setNotes(resolved);
       }
     };
     fetchNotes();
