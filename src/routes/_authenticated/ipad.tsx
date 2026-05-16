@@ -105,6 +105,27 @@ function IpadPage() {
   const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
   const [mode, setMode] = useState<"handwrite" | "type">("handwrite");
   const [typedText, setTypedText] = useState("");
+  const typedRef = useRef<HTMLTextAreaElement>(null);
+  const noteWrapRef = useRef<HTMLDivElement>(null);
+
+  // Auto-size the Type textarea so it always matches at least the sticky-note
+  // aspect ratio (3.5:3) and grows to fit any longer content.
+  useEffect(() => {
+    if (mode !== "type") return;
+    const el = typedRef.current;
+    const wrap = noteWrapRef.current;
+    if (!el || !wrap) return;
+    const resize = () => {
+      const width = wrap.getBoundingClientRect().width;
+      const minH = Math.round((width * 3) / 3.5);
+      el.style.height = "auto";
+      el.style.height = Math.max(minH, el.scrollHeight) + "px";
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(wrap);
+    return () => ro.disconnect();
+  }, [mode, typedText]);
 
   const armStamp = (type: "bullet" | "number") => {
     if (pendingStamp === type) {
