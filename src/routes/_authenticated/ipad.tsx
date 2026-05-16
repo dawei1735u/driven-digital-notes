@@ -690,6 +690,44 @@ function IpadPage() {
               >
                 <Eraser className="h-5 w-5" /> Eraser
               </button>
+              <div
+                className="inline-flex items-center gap-1.5 rounded-xl border border-input bg-card px-2 py-1.5 shadow-sm"
+                role="group"
+                aria-label="Pen color"
+              >
+                {PEN_COLORS.map((c) => {
+                  const active = penColor === c.value && tool === "pen";
+                  return (
+                    <button
+                      key={c.value}
+                      onClick={() => selectColor(c.value)}
+                      title={c.name}
+                      aria-label={c.name}
+                      aria-pressed={active}
+                      className={
+                        "h-8 w-8 rounded-full border-2 transition " +
+                        (active
+                          ? "border-foreground scale-110 shadow"
+                          : "border-transparent hover:scale-105")
+                      }
+                      style={{ background: c.value }}
+                    />
+                  );
+                })}
+                <label
+                  className="ml-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-dashed border-input bg-background text-xs font-bold text-muted-foreground hover:bg-accent"
+                  title="Custom color"
+                >
+                  +
+                  <input
+                    type="color"
+                    value={penColor}
+                    onChange={(e) => selectColor(e.target.value)}
+                    className="sr-only"
+                    aria-label="Custom pen color"
+                  />
+                </label>
+              </div>
               <button
                 onClick={() => canvasRef.current?.clear()}
                 className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
