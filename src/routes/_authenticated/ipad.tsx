@@ -308,6 +308,12 @@ function IpadPage() {
                 <Trash2 className="h-5 w-5" /> Clear all
               </button>
               <button
+                onClick={() => canvasRef.current?.extend(300)}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+              >
+                <Plus className="h-5 w-5" /> Add space
+              </button>
+              <button
                 onClick={onSave}
                 disabled={saving}
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-5 py-3 text-base font-bold text-white shadow-md transition hover:bg-[var(--ink)]/85 disabled:opacity-60"
