@@ -20,7 +20,7 @@ function pathFromImageUrl(image_url: string | null | undefined): string | null {
 export const Route = createFileRoute("/_authenticated/monitor")({
   head: () => ({
     meta: [
-      { title: "Shift Handoff Board — ShiftNotes" },
+      { title: "Tasks" },
       {
         name: "description",
         content: "Live wall of open shift notes for doorman handoff.",

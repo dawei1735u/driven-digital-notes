@@ -91,7 +91,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       {
         heading: "Changed",
         items: [
-          "Renamed product on the landing page from 'ShiftNotes' to 'DigitalNotes' — updated the H1 in src/routes/index.tsx so 'Digital' renders in foreground and 'Notes' in primary accent.",
+          "Renamed product on the landing page from 'Tasks' to 'DigitalNotes' — updated the H1 in src/routes/index.tsx so 'Digital' renders in foreground and 'Notes' in primary accent.",
           "Replaced the old 'Digital Doorman Shift Handoff' eyebrow with 'Future Solutions Digital Notes' and then removed the eyebrow entirely once the logo took over as the primary brand mark in the header.",
           "Moved the D.A.V.E. monogram (src/assets/dave-logo.png) from the footer into the hero header, stacked above the DigitalNotes wordmark with mb-6 spacing, so the brand identity reads top-down: logo → wordmark → CTAs.",
           "Removed the marketing subtitle ('Handwritten shift handoff notes — written on the iPad, instantly visible on the lobby monitor.') to tighten the hero now that the logo carries the brand weight.",

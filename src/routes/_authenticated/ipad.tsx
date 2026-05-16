@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/ipad")({
   }),
   head: () => ({
     meta: [
-      { title: "Write a Shift Note — ShiftNotes" },
+      { title: "Write a Shift Note — Tasks" },
       {
         name: "description",
         content: "Write a handwritten shift handoff note on iPad.",

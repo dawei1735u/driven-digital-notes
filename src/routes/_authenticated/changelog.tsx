@@ -7,8 +7,8 @@ import { getMyAdminContext } from "@/lib/admin.functions";
 export const Route = createFileRoute("/_authenticated/changelog")({
   head: () => ({
     meta: [
-      { title: "Changelog — ShiftNotes" },
-      { name: "description", content: "Release notes and feature history for ShiftNotes." },
+      { title: "Changelog — Tasks" },
+      { name: "description", content: "Release notes and feature history for Tasks." },
     ],
   }),
   component: ChangelogPage,
@@ -44,7 +44,7 @@ function ChangelogPage() {
         </Link>
         <h1 className="mt-4 text-4xl font-bold tracking-tight">Changelog</h1>
         <p className="mt-2 text-muted-foreground">
-          Everything new, improved, and fixed in ShiftNotes.
+          Everything new, improved, and fixed in Tasks.
         </p>
 
         <div className="mt-10 space-y-10">
