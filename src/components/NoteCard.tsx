@@ -64,12 +64,44 @@ export function NoteCard({
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const [strikeMode, setStrikeMode] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
   const strikes: Strike[] = Array.isArray((note as unknown as { strikes?: Strike[] }).strikes)
     ? ((note as unknown as { strikes: Strike[] }).strikes)
     : [];
   const imgWrapRef = useRef<HTMLDivElement>(null);
   const drawStartRef = useRef<{ x: number; y: number } | null>(null);
   const [tempStrike, setTempStrike] = useState<Strike | null>(null);
+
+  const audioPath = (note as unknown as { audio_url?: string | null }).audio_url ?? null;
+
+  const toggleAudio = async () => {
+    if (!audioPath) return;
+    if (audioPlaying && audioElRef.current) {
+      audioElRef.current.pause();
+      return;
+    }
+    setAudioLoading(true);
+    try {
+      if (!audioElRef.current) {
+        const { data, error } = await supabase.storage
+          .from("note-audio")
+          .createSignedUrl(audioPath, 3600);
+        if (error || !data?.signedUrl) throw error ?? new Error("No signed URL");
+        const el = new Audio(data.signedUrl);
+        el.onended = () => setAudioPlaying(false);
+        el.onpause = () => setAudioPlaying(false);
+        el.onplay = () => setAudioPlaying(true);
+        audioElRef.current = el;
+      }
+      await audioElRef.current.play();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAudioLoading(false);
+    }
+  };
 
   const persistStrikes = async (next: Strike[]) => {
     onLocalUpdate?.(note.id, { strikes: next } as unknown as Partial<Note>);
