@@ -125,7 +125,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
           ? "•"
           : `${numberCounterRef.current++}.`;
       ctx.save();
-      ctx.fillStyle = "#1a1a1a";
+      ctx.fillStyle = colorRef.current;
       ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
       ctx.textBaseline = "middle";
       ctx.textAlign = "left";
