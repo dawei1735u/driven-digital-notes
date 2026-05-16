@@ -14,7 +14,6 @@ import { PenLine } from "lucide-react";
 
 type Note = Tables<"notes">;
 
-
 export function EditNoteDialog({
   note,
   open,
@@ -27,9 +26,6 @@ export function EditNoteDialog({
   onSaved?: (patch: Partial<Note>) => void;
 }) {
   const [writtenBy, setWrittenBy] = useState("");
-  const [shift, setShift] = useState(SHIFTS[0]);
-  const [apartment, setApartment] = useState("");
-  const [category, setCategory] = useState(CATEGORIES[0]);
   const [displayDate, setDisplayDate] = useState("");
   const [status, setStatus] = useState<"open" | "resolved">("open");
   const [saving, setSaving] = useState(false);
@@ -38,9 +34,6 @@ export function EditNoteDialog({
   useEffect(() => {
     if (!note) return;
     setWrittenBy(note.written_by ?? "");
-    setShift(note.shift ?? SHIFTS[0]);
-    setApartment(note.apartment ?? "");
-    setCategory(note.category ?? CATEGORIES[0]);
     setDisplayDate(note.display_date ?? "");
     setStatus((note.status as "open" | "resolved") ?? "open");
     setError(null);
@@ -53,9 +46,6 @@ export function EditNoteDialog({
     setError(null);
     const patch = {
       written_by: writtenBy.trim() || note.written_by,
-      shift,
-      apartment: apartment.trim() || null,
-      category,
       display_date: displayDate || note.display_date,
       status,
     };
@@ -92,17 +82,6 @@ export function EditNoteDialog({
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Shift">
-              <select
-                value={shift}
-                onChange={(e) => setShift(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                {SHIFTS.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </select>
-            </Field>
             <Field label="Status">
               <select
                 value={status}
@@ -115,15 +94,6 @@ export function EditNoteDialog({
                 <option value="resolved">Resolved</option>
               </select>
             </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Apartment / unit">
-              <input
-                value={apartment}
-                onChange={(e) => setApartment(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-            </Field>
             <Field label="Display date">
               <input
                 type="date"
@@ -133,17 +103,6 @@ export function EditNoteDialog({
               />
             </Field>
           </div>
-          <Field label="Category">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </Field>
 
           {error && (
             <p className="rounded-md bg-red-100 px-3 py-2 text-sm text-red-900">
