@@ -5,13 +5,19 @@ import {
   type HandwritingCanvasHandle,
 } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste, Youtube, Type, PenLine } from "lucide-react";
+import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste, Youtube, Type, PenLine, Mic } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
+import { transcribeAudio } from "@/lib/voice.functions";
+import { VoiceRecorder, blobToBase64, type Recording } from "@/components/VoiceRecorder";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
   validateSearch: (s: Record<string, unknown>) => ({
     edit: typeof s.edit === "string" ? s.edit : undefined,
+    mode:
+      s.mode === "type" || s.mode === "voice" || s.mode === "handwrite"
+        ? (s.mode as "type" | "voice" | "handwrite")
+        : undefined,
   }),
   head: () => ({
     meta: [
@@ -90,7 +96,7 @@ function IpadPage() {
 
   const canvasRef = useRef<HandwritingCanvasHandle>(null);
   const navigate = useNavigate();
-  const { edit: editId } = useSearch({ from: "/_authenticated/ipad" });
+  const { edit: editId, mode: initialMode } = useSearch({ from: "/_authenticated/ipad" });
 
   const [writtenBy, setWrittenBy] = useState("");
   const [writtenByLocked, setWrittenByLocked] = useState(false);
@@ -103,8 +109,11 @@ function IpadPage() {
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
-  const [mode, setMode] = useState<"handwrite" | "type">("handwrite");
+  const [mode, setMode] = useState<"handwrite" | "type" | "voice">(initialMode ?? "handwrite");
   const [typedText, setTypedText] = useState("");
+  const [recording, setRecording] = useState<Recording | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
+  const transcribeFn = useServerFn(transcribeAudio);
   const typedRef = useRef<HTMLTextAreaElement>(null);
   const noteWrapRef = useRef<HTMLDivElement>(null);
 
@@ -347,14 +356,54 @@ function IpadPage() {
       setError("Please type something on the note first.");
       return;
     }
+    if (mode === "voice" && !recording) {
+      setError("Please record a voice note first.");
+      return;
+    }
     const author = writtenBy.trim() || "Owner";
 
     setSaving(true);
     try {
-      const blob =
-        mode === "handwrite"
-          ? await canvasRef.current!.toBlob()
-          : await renderTypedNoteToBlob(typedText);
+      // Voice mode: transcribe → render transcript image → upload audio
+      let transcript: string | null = null;
+      let audioPath: string | null = null;
+      let blob: Blob | null = null;
+
+      if (mode === "voice" && recording) {
+        setTranscribing(true);
+        const audioBase64 = await blobToBase64(recording.blob);
+        const result = await transcribeFn({
+          data: { audioBase64, mimeType: recording.mimeType },
+        });
+        setTranscribing(false);
+        if (result.error) throw new Error(result.error);
+        transcript = result.text.trim() || "(voice note — no speech detected)";
+
+        // Upload audio clip
+        const ext = recording.mimeType.includes("mp4")
+          ? "m4a"
+          : recording.mimeType.includes("wav")
+          ? "wav"
+          : "webm";
+        const aTs = Date.now();
+        const aRand = Math.random().toString(36).slice(2, 10);
+        audioPath = `${aTs}-${aRand}.${ext}`;
+        const { error: aUpErr } = await supabase.storage
+          .from("note-audio")
+          .upload(audioPath, recording.blob, {
+            contentType: recording.mimeType,
+            cacheControl: "3600",
+            upsert: false,
+          });
+        if (aUpErr) throw aUpErr;
+
+        blob = await renderTypedNoteToBlob(transcript);
+      } else {
+        blob =
+          mode === "handwrite"
+            ? await canvasRef.current!.toBlob()
+            : await renderTypedNoteToBlob(typedText);
+      }
       if (!blob) throw new Error("Could not export the note.");
 
       const ts = Date.now();
@@ -380,6 +429,7 @@ function IpadPage() {
             apartment: apartment.trim() || null,
             category,
             image_url: path,
+            ...(audioPath ? { audio_url: audioPath, transcribed_text: transcript } : {}),
           })
           .eq("id", editId);
         if (updErr) throw updErr;
@@ -389,17 +439,19 @@ function IpadPage() {
           navigate({ to: "/monitor" });
         }, 1200);
       } else {
-        // Bucket is private — store the storage path. Monitor signs URLs at view time.
         const { error: insErr } = await supabase.from("notes").insert({
           written_by: author,
           shift,
           apartment: apartment.trim() || null,
           category,
           image_url: path,
+          audio_url: audioPath,
+          transcribed_text: transcript,
         });
         if (insErr) throw insErr;
         canvasRef.current?.clear();
         setTypedText("");
+        setRecording(null);
         setApartment("");
         setSavedAt(Date.now());
         setTimeout(() => setSavedAt(null), 2500);
@@ -409,6 +461,7 @@ function IpadPage() {
       setError(e instanceof Error ? e.message : "Failed to save note.");
     } finally {
       setSaving(false);
+      setTranscribing(false);
     }
   };
 
@@ -475,6 +528,18 @@ function IpadPage() {
             >
               <Type className="h-4 w-4" /> Type
             </button>
+            <button
+              onClick={() => setMode("voice")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "voice"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "voice"}
+            >
+              <Mic className="h-4 w-4" /> Voice
+            </button>
           </div>
           <div>
             <div
@@ -515,7 +580,7 @@ function IpadPage() {
                     </div>
                   )}
                 </>
-              ) : (
+              ) : mode === "type" ? (
                 <textarea
                   ref={typedRef}
                   value={typedText}
@@ -530,6 +595,32 @@ function IpadPage() {
                       '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
                   }}
                 />
+              ) : (
+                <div
+                  className="flex flex-col items-center justify-center gap-6 rounded-md p-8 text-center"
+                  style={{
+                    aspectRatio: "3.5 / 3",
+                    background: "var(--sticky-yellow)",
+                    boxShadow:
+                      "0 14px 28px -10px rgba(0,0,0,0.25), 0 6px 12px -6px rgba(0,0,0,0.18)",
+                  }}
+                >
+                  <div className="flex flex-col items-center gap-2 text-foreground">
+                    <Mic className="h-12 w-12 opacity-70" />
+                    <p className="text-lg font-semibold">
+                      {recording ? "Voice note captured" : "Record a voice note"}
+                    </p>
+                    <p className="max-w-md text-sm text-foreground/70">
+                      Tap Record, speak your task, then Stop. Saving will transcribe
+                      it automatically and post it to the board with audio playback.
+                    </p>
+                  </div>
+                  <VoiceRecorder
+                    recording={recording}
+                    onChange={setRecording}
+                    disabled={saving || transcribing}
+                  />
+                </div>
               )}
             </div>
             {pendingStamp && (
@@ -666,7 +757,9 @@ function IpadPage() {
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-5 py-3 text-base font-bold text-white shadow-md transition hover:bg-[var(--ink)]/85 disabled:opacity-60"
               >
                 <Save className="h-5 w-5" />
-                {saving
+                {transcribing
+                  ? "Transcribing…"
+                  : saving
                   ? "Saving…"
                   : isEdit
                   ? "Save Changes"

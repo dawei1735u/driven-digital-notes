@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { NoteCard } from "@/components/NoteCard";
 import { EditNoteDialog } from "@/components/EditNoteDialog";
-import { Minus, Plus, PenLine, Home, Filter, LogOut } from "lucide-react";
+import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic } from "lucide-react";
 
 type Note = Tables<"notes">;
 
@@ -430,6 +430,14 @@ function MonitorPageInner() {
           >
             <PenLine className="h-6 w-6" />
             Write New Note
+          </Link>
+          <Link
+            to="/ipad"
+            search={{ mode: "voice" }}
+            className="inline-flex items-center gap-3 rounded-2xl bg-red-500 px-7 py-4 text-lg font-bold text-white shadow-xl ring-2 ring-red-300/50 hover:bg-red-400"
+          >
+            <Mic className="h-6 w-6" />
+            Voice Note
           </Link>
           <button
             onClick={async () => {

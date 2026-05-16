@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil, PenLine, Undo2 } from "lucide-react";
+import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil, PenLine, Undo2, Play, Pause, Volume2 } from "lucide-react";
 
 type Strike = { x1: number; y1: number; x2: number; y2: number };
 
@@ -64,12 +64,44 @@ export function NoteCard({
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const [strikeMode, setStrikeMode] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
   const strikes: Strike[] = Array.isArray((note as unknown as { strikes?: Strike[] }).strikes)
     ? ((note as unknown as { strikes: Strike[] }).strikes)
     : [];
   const imgWrapRef = useRef<HTMLDivElement>(null);
   const drawStartRef = useRef<{ x: number; y: number } | null>(null);
   const [tempStrike, setTempStrike] = useState<Strike | null>(null);
+
+  const audioPath = (note as unknown as { audio_url?: string | null }).audio_url ?? null;
+
+  const toggleAudio = async () => {
+    if (!audioPath) return;
+    if (audioPlaying && audioElRef.current) {
+      audioElRef.current.pause();
+      return;
+    }
+    setAudioLoading(true);
+    try {
+      if (!audioElRef.current) {
+        const { data, error } = await supabase.storage
+          .from("note-audio")
+          .createSignedUrl(audioPath, 3600);
+        if (error || !data?.signedUrl) throw error ?? new Error("No signed URL");
+        const el = new Audio(data.signedUrl);
+        el.onended = () => setAudioPlaying(false);
+        el.onpause = () => setAudioPlaying(false);
+        el.onplay = () => setAudioPlaying(true);
+        audioElRef.current = el;
+      }
+      await audioElRef.current.play();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAudioLoading(false);
+    }
+  };
 
   const persistStrikes = async (next: Strike[]) => {
     onLocalUpdate?.(note.id, { strikes: next } as unknown as Partial<Note>);
@@ -231,6 +263,29 @@ export function NoteCard({
         <span className="rounded-full bg-[var(--ink)]/10 px-2 py-0.5">
           {note.shift}
         </span>
+        {audioPath && (
+          <button
+            onClick={toggleAudio}
+            disabled={audioLoading}
+            className={
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 transition " +
+              (audioPlaying
+                ? "bg-[var(--ink)] text-white"
+                : "bg-[var(--ink)]/10 hover:bg-[var(--ink)]/20")
+            }
+            title={audioPlaying ? "Pause voice note" : "Play voice note"}
+            aria-label={audioPlaying ? "Pause voice note" : "Play voice note"}
+          >
+            {audioLoading ? (
+              <Volume2 className="h-3 w-3 animate-pulse" />
+            ) : audioPlaying ? (
+              <Pause className="h-3 w-3" />
+            ) : (
+              <Play className="h-3 w-3" />
+            )}
+            <span className="text-[10px] font-bold uppercase tracking-wider">Voice</span>
+          </button>
+        )}
         <button
           onClick={() => setStrikeMode((v) => !v)}
           className={
