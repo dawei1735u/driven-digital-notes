@@ -2,6 +2,20 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { Check, Clock, MapPin, User, Calendar as CalIcon, GripVertical, RotateCcw, Pencil } from "lucide-react";
+
+function CornerResizeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 12 12" className={className} aria-hidden="true">
+      <path
+        d="M11 5 L5 11 M11 9 L9 11"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
