@@ -109,7 +109,7 @@ function IpadPage() {
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
-  const [mode, setMode] = useState<"handwrite" | "type" | "voice">("handwrite");
+  const [mode, setMode] = useState<"handwrite" | "type" | "voice">(initialMode ?? "handwrite");
   const [typedText, setTypedText] = useState("");
   const [recording, setRecording] = useState<Recording | null>(null);
   const [transcribing, setTranscribing] = useState(false);
