@@ -32,7 +32,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Admin Panel — ShiftNotes" },
+      { title: "Admin Panel — Tasks" },
       { name: "description", content: "Manage notes, view stats, and run bulk actions." },
     ],
   }),
@@ -216,7 +216,7 @@ function AdminPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Admin</p>
-            <h1 className="text-xl font-bold">ShiftNotes Control Panel</h1>
+            <h1 className="text-xl font-bold">Tasks Control Panel</h1>
           </div>
           <nav className="flex items-center gap-3 text-sm">
             <Link to="/monitor" className="text-muted-foreground hover:underline">Monitor</Link>

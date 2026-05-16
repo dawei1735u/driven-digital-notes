@@ -20,7 +20,7 @@ function pathFromImageUrl(image_url: string | null | undefined): string | null {
 export const Route = createFileRoute("/_authenticated/monitor")({
   head: () => ({
     meta: [
-      { title: "Shift Handoff Board — ShiftNotes" },
+      { title: "Tasks" },
       {
         name: "description",
         content: "Live wall of open shift notes for doorman handoff.",
@@ -424,11 +424,8 @@ function MonitorPageInner() {
             <Home className="h-5 w-5" />
           </Link>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-white/50">
-              Shift Handoff Board
-            </p>
             <h1 className="mt-1 text-3xl font-bold tracking-tight">
-              Shift<span className="text-amber-300">Notes</span>
+              Tasks
             </h1>
           </div>
         </div>

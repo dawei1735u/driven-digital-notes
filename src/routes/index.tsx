@@ -6,7 +6,7 @@ import daveLogo from "@/assets/dave-logo.png";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ShiftNotes — Digital Doorman Shift Handoff" },
+      { title: "Tasks — Digital Doorman Shift Handoff" },
       {
         name: "description",
         content:
