@@ -191,7 +191,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         ctx.stroke();
         ctx.restore();
       } else {
-        ctx.strokeStyle = "#1a1a1a";
+        ctx.strokeStyle = colorRef.current;
         ctx.lineWidth = (1.5 + pressure * 3.5) * dpr;
         ctx.beginPath();
         ctx.moveTo(lastRef.current.x, lastRef.current.y);
