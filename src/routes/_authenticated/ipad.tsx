@@ -5,7 +5,7 @@ import {
   type HandwritingCanvasHandle,
 } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw } from "lucide-react";
+import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -58,6 +58,88 @@ function IpadPage() {
     } else {
       canvasRef.current?.stampNext(type);
       setPendingStamp(type);
+    }
+  };
+
+  const [pasteError, setPasteError] = useState<string | null>(null);
+  const [pasteOk, setPasteOk] = useState(false);
+
+  const flashPasteOk = () => {
+    setPasteOk(true);
+    setTimeout(() => setPasteOk(false), 1500);
+  };
+
+  // Handle Cmd/Ctrl+V (or iPad paste menu) anywhere on the page.
+  useEffect(() => {
+    const onPaste = async (e: ClipboardEvent) => {
+      // Don't hijack pasting into form inputs.
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+      if (!canvasRef.current) return;
+      const items = e.clipboardData?.items;
+      if (!items || items.length === 0) return;
+      e.preventDefault();
+      setPasteError(null);
+      try {
+        for (const item of Array.from(items)) {
+          if (item.type.startsWith("image/")) {
+            const file = item.getAsFile();
+            if (!file) continue;
+            const url = URL.createObjectURL(file);
+            await canvasRef.current.pasteImage(url);
+            URL.revokeObjectURL(url);
+            flashPasteOk();
+            return;
+          }
+        }
+        const text = e.clipboardData?.getData("text/plain");
+        if (text && text.trim()) {
+          canvasRef.current.pasteText(text);
+          flashPasteOk();
+        }
+      } catch (err) {
+        console.error(err);
+        setPasteError(err instanceof Error ? err.message : "Failed to paste.");
+      }
+    };
+    document.addEventListener("paste", onPaste);
+    return () => document.removeEventListener("paste", onPaste);
+  }, []);
+
+  // Toolbar button: read clipboard via the async API (needed on iPad / touch
+  // where there's no keyboard shortcut).
+  const pasteFromClipboard = async () => {
+    if (!canvasRef.current) return;
+    setPasteError(null);
+    try {
+      if (navigator.clipboard && "read" in navigator.clipboard) {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          const imgType = item.types.find((t) => t.startsWith("image/"));
+          if (imgType) {
+            const blob = await item.getType(imgType);
+            const url = URL.createObjectURL(blob);
+            await canvasRef.current.pasteImage(url);
+            URL.revokeObjectURL(url);
+            flashPasteOk();
+            return;
+          }
+        }
+      }
+      const text = await navigator.clipboard.readText();
+      if (text && text.trim()) {
+        canvasRef.current.pasteText(text);
+        flashPasteOk();
+      } else {
+        setPasteError("Clipboard is empty.");
+      }
+    } catch (err) {
+      console.error(err);
+      setPasteError(
+        "Couldn't read the clipboard. Try Cmd/Ctrl+V instead, or grant clipboard permission.",
+      );
     }
   };
 
@@ -386,6 +468,13 @@ function IpadPage() {
                 <RotateCcw className="h-5 w-5" /> Reset #
               </button>
               <button
+                onClick={pasteFromClipboard}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+                title="Paste text or image from clipboard (or use Cmd/Ctrl+V)"
+              >
+                <ClipboardPaste className="h-5 w-5" /> Paste
+              </button>
+              <button
                 onClick={onSave}
                 disabled={saving}
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--ink)] px-5 py-3 text-base font-bold text-white shadow-md transition hover:bg-[var(--ink)]/85 disabled:opacity-60"
@@ -408,6 +497,16 @@ function IpadPage() {
             {loadingEdit && (
               <div className="mt-3 rounded-md bg-amber-100 px-3 py-2 text-sm font-medium text-amber-900">
                 Loading existing note…
+              </div>
+            )}
+            {pasteOk && (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm font-medium text-blue-900">
+                <ClipboardPaste className="h-4 w-4" /> Pasted to the note.
+              </div>
+            )}
+            {pasteError && (
+              <div className="mt-3 rounded-md bg-amber-100 px-3 py-2 text-sm font-medium text-amber-900">
+                {pasteError}
               </div>
             )}
             {error && (
