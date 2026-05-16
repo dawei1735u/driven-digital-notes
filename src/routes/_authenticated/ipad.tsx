@@ -576,7 +576,7 @@ function IpadPage() {
                     </div>
                   )}
                 </>
-              ) : (
+              ) : mode === "type" ? (
                 <textarea
                   ref={typedRef}
                   value={typedText}
@@ -591,6 +591,32 @@ function IpadPage() {
                       '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
                   }}
                 />
+              ) : (
+                <div
+                  className="flex flex-col items-center justify-center gap-6 rounded-md p-8 text-center"
+                  style={{
+                    aspectRatio: "3.5 / 3",
+                    background: "var(--sticky-yellow)",
+                    boxShadow:
+                      "0 14px 28px -10px rgba(0,0,0,0.25), 0 6px 12px -6px rgba(0,0,0,0.18)",
+                  }}
+                >
+                  <div className="flex flex-col items-center gap-2 text-foreground">
+                    <Mic className="h-12 w-12 opacity-70" />
+                    <p className="text-lg font-semibold">
+                      {recording ? "Voice note captured" : "Record a voice note"}
+                    </p>
+                    <p className="max-w-md text-sm text-foreground/70">
+                      Tap Record, speak your task, then Stop. Saving will transcribe
+                      it automatically and post it to the board with audio playback.
+                    </p>
+                  </div>
+                  <VoiceRecorder
+                    recording={recording}
+                    onChange={setRecording}
+                    disabled={saving || transcribing}
+                  />
+                </div>
               )}
             </div>
             {pendingStamp && (
