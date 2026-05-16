@@ -181,18 +181,37 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
       },
     }));
 
+    // Base height tracks container width via aspect ratio; extend grows it.
+    const [baseHeight, setBaseHeight] = useState<number>(0);
+    useEffect(() => {
+      const c = containerRef.current;
+      if (!c) return;
+      const update = () => {
+        const w = c.getBoundingClientRect().width;
+        setBaseHeight(Math.round((w * 3) / 3.5));
+      };
+      update();
+      const ro = new ResizeObserver(update);
+      ro.observe(c);
+      return () => ro.disconnect();
+    }, []);
+
     return (
       <div
         ref={containerRef}
         className={className}
         style={{
-          aspectRatio: "3.5 / 3",
           width: "100%",
+          height: baseHeight ? `${baseHeight + extraHeight}px` : undefined,
+          minHeight: baseHeight ? undefined : "300px",
           background: "var(--sticky-yellow)",
           borderRadius: "6px",
           boxShadow:
             "0 14px 28px -10px rgba(0,0,0,0.25), 0 6px 12px -6px rgba(0,0,0,0.18)",
           position: "relative",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          WebkitTouchCallout: "none",
         }}
       >
         <canvas
@@ -208,6 +227,9 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
             touchAction: "none",
             cursor: "crosshair",
             borderRadius: "6px",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            WebkitTouchCallout: "none",
           }}
         />
       </div>
