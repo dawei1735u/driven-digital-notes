@@ -287,6 +287,15 @@ function AdminPage() {
               placeholder="Note (optional)"
               className="w-56 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
             />
+            <select
+              value={inviteWorkspace}
+              onChange={(e) => setInviteWorkspace(e.target.value as "shared" | "solo")}
+              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+              title="Workspace"
+            >
+              <option value="shared">Shared doorman board</option>
+              <option value="solo">Private (their own instance)</option>
+            </select>
             <button
               type="submit"
               disabled={inviteBusy}
