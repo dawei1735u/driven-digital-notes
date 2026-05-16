@@ -10,6 +10,8 @@ export interface HandwritingCanvasHandle {
   /** Switch between pen and eraser tools. */
   setTool: (tool: "pen" | "eraser") => void;
   getTool: () => "pen" | "eraser";
+  /** Add more vertical writing space, preserving existing ink. */
+  extend: (extraPx?: number) => void;
 }
 
 interface Props {
