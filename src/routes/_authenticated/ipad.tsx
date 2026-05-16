@@ -36,7 +36,57 @@ const CATEGORIES = [
   "Other",
 ];
 
-function IpadPage() {
+/** Render typed text to a sticky-note PNG matching the handwriting canvas style. */
+async function renderTypedNoteToBlob(text: string): Promise<Blob | null> {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cssW = 1000;
+  const fontPx = 28 * dpr;
+  const lineHeight = Math.round(fontPx * 1.4);
+  const marginX = 36 * dpr;
+  const marginY = 36 * dpr;
+  const w = Math.floor(cssW * dpr);
+
+  const measure = document.createElement("canvas").getContext("2d")!;
+  measure.font = `500 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
+  const maxWidth = w - marginX * 2;
+  const lines: string[] = [];
+  for (const para of text.replace(/\r\n/g, "\n").split("\n")) {
+    if (!para.trim()) { lines.push(""); continue; }
+    const words = para.split(/\s+/);
+    let current = "";
+    for (const word of words) {
+      const next = current ? current + " " + word : word;
+      if (measure.measureText(next).width <= maxWidth) {
+        current = next;
+      } else {
+        if (current) lines.push(current);
+        current = word;
+      }
+    }
+    if (current) lines.push(current);
+  }
+  const minH = Math.floor((cssW * 3) / 3.5) * dpr;
+  const contentH = marginY * 2 + lines.length * lineHeight;
+  const h = Math.max(minH, contentH);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#fff2a8";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#1a1a1a";
+  ctx.font = `500 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
+  ctx.textBaseline = "top";
+  let y = marginY;
+  for (const line of lines) {
+    ctx.fillText(line, marginX, y);
+    y += lineHeight;
+  }
+  return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
+}
+
+
   const canvasRef = useRef<HandwritingCanvasHandle>(null);
   const navigate = useNavigate();
   const { edit: editId } = useSearch({ from: "/_authenticated/ipad" });
