@@ -100,6 +100,7 @@ function AdminPage() {
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteNote, setInviteNote] = useState("");
+  const [inviteWorkspace, setInviteWorkspace] = useState<"shared" | "solo">("shared");
   const [inviteBusy, setInviteBusy] = useState(false);
 
   async function handleInvite(e: React.FormEvent) {
@@ -107,9 +108,16 @@ function AdminPage() {
     if (!inviteEmail.trim()) return;
     setInviteBusy(true);
     try {
-      await inviteUser({ data: { email: inviteEmail.trim(), note: inviteNote.trim() || undefined } });
+      await inviteUser({
+        data: {
+          email: inviteEmail.trim(),
+          note: inviteNote.trim() || undefined,
+          workspace: inviteWorkspace,
+        },
+      });
       setInviteEmail("");
       setInviteNote("");
+      setInviteWorkspace("shared");
       await queryClient.invalidateQueries({ queryKey: ["admin", "allowed"] });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to invite");
