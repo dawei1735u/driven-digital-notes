@@ -96,7 +96,7 @@ function IpadPage() {
 
   const canvasRef = useRef<HandwritingCanvasHandle>(null);
   const navigate = useNavigate();
-  const { edit: editId } = useSearch({ from: "/_authenticated/ipad" });
+  const { edit: editId, mode: initialMode } = useSearch({ from: "/_authenticated/ipad" });
 
   const [writtenBy, setWrittenBy] = useState("");
   const [writtenByLocked, setWrittenByLocked] = useState(false);
