@@ -120,6 +120,8 @@ bun run dev      # vite dev server
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.13.1** — Login: friendlier "invalid credentials" message that points users to Google sign-in or password reset; emails normalized (trim + lowercase); proper autocomplete attributes.
+- **1.13.0** — Voice notes end-to-end: record on `/ipad` or `/monitor`, auto-transcribe via Lovable AI (Gemini 2.5 Flash), store original audio in a private `note-audio` bucket, play back inline on each `NoteCard`. New `audio_url` column on `notes`, new `transcribeAudio` server function, and a `mode=voice` deep link on `/ipad`.
 - **1.12.0** — `/ipad`: bullet & number stamps (with tap-and-drag and auto-numbering), clipboard paste (text + images) via Cmd/Ctrl+V or toolbar button, and an AI-powered YouTube summary tool that uses the video's captions when available.
 - **1.11.0** — Personal-mode iPad: removed the note-details side panel so the canvas is full-width. Renamed every user-facing "ShiftNotes" / "Shift Handoff" string to "Tasks" across meta titles & descriptions (`/`, root, `/monitor`, `/ipad`).
 - **1.10.0** — iPad: no-select canvas + extendable writing space (`+` add space button).
