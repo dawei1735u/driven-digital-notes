@@ -5,7 +5,9 @@ import {
   type HandwritingCanvasHandle,
 } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste } from "lucide-react";
+import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste, Youtube } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { summarizeYouTube } from "@/lib/youtube.functions";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -63,10 +65,30 @@ function IpadPage() {
 
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [pasteOk, setPasteOk] = useState(false);
+  const [ytLoading, setYtLoading] = useState(false);
+  const summarizeYt = useServerFn(summarizeYouTube);
 
   const flashPasteOk = () => {
     setPasteOk(true);
     setTimeout(() => setPasteOk(false), 1500);
+  };
+
+  const insertYouTubeSummary = async () => {
+    if (!canvasRef.current || ytLoading) return;
+    const url = window.prompt("Paste a YouTube link to summarize:");
+    if (!url || !url.trim()) return;
+    setPasteError(null);
+    setYtLoading(true);
+    try {
+      const res = await summarizeYt({ data: { url: url.trim() } });
+      canvasRef.current.pasteText(res.text);
+      flashPasteOk();
+    } catch (err) {
+      console.error(err);
+      setPasteError(err instanceof Error ? err.message : "Failed to summarize video.");
+    } finally {
+      setYtLoading(false);
+    }
   };
 
   // Handle Cmd/Ctrl+V (or iPad paste menu) anywhere on the page.
@@ -473,6 +495,14 @@ function IpadPage() {
                 title="Paste text or image from clipboard (or use Cmd/Ctrl+V)"
               >
                 <ClipboardPaste className="h-5 w-5" /> Paste
+              </button>
+              <button
+                onClick={insertYouTubeSummary}
+                disabled={ytLoading}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent disabled:opacity-60"
+                title="Paste a YouTube link to insert a quick summary"
+              >
+                <Youtube className="h-5 w-5" /> {ytLoading ? "Summarizing…" : "YouTube Summary"}
               </button>
               <button
                 onClick={onSave}
