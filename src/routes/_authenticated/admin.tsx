@@ -219,8 +219,8 @@ function AdminPage() {
             <h1 className="text-xl font-bold">Tasks Control Panel</h1>
           </div>
           <nav className="flex items-center gap-3 text-sm">
-            <Link to="/monitor" className="text-muted-foreground hover:underline">Monitor</Link>
-            <Link to="/ipad" className="text-muted-foreground hover:underline">iPad</Link>
+            <Link to="/monitor" className="text-muted-foreground hover:underline">Tasks Board</Link>
+            <Link to="/ipad" className="text-muted-foreground hover:underline">Write Task</Link>
             <Link to="/changelog" className="text-muted-foreground hover:underline">Changelog</Link>
             <button onClick={signOut} className="rounded-md border border-border px-3 py-1.5 text-xs">
               Sign out

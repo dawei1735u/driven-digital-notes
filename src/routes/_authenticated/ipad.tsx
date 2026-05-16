@@ -241,7 +241,7 @@ function IpadPage() {
             to="/monitor"
             className="text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            Monitor →
+            Tasks Board →
           </Link>
           <button
             onClick={handleSignOut}
