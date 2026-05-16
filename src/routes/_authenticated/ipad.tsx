@@ -65,10 +65,30 @@ function IpadPage() {
 
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [pasteOk, setPasteOk] = useState(false);
+  const [ytLoading, setYtLoading] = useState(false);
+  const summarizeYt = useServerFn(summarizeYouTube);
 
   const flashPasteOk = () => {
     setPasteOk(true);
     setTimeout(() => setPasteOk(false), 1500);
+  };
+
+  const insertYouTubeSummary = async () => {
+    if (!canvasRef.current || ytLoading) return;
+    const url = window.prompt("Paste a YouTube link to summarize:");
+    if (!url || !url.trim()) return;
+    setPasteError(null);
+    setYtLoading(true);
+    try {
+      const res = await summarizeYt({ data: { url: url.trim() } });
+      canvasRef.current.pasteText(res.text);
+      flashPasteOk();
+    } catch (err) {
+      console.error(err);
+      setPasteError(err instanceof Error ? err.message : "Failed to summarize video.");
+    } finally {
+      setYtLoading(false);
+    }
   };
 
   // Handle Cmd/Ctrl+V (or iPad paste menu) anywhere on the page.
