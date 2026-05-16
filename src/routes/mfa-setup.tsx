@@ -29,16 +29,20 @@ function MfaSetupPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // Clean up any unverified factor so we always start fresh.
+      // If a verified TOTP factor already exists, skip enrollment.
       const { data: factors } = await supabase.auth.mfa.listFactors();
-      for (const f of factors?.totp ?? []) {
-        if (f.status !== "verified") {
-          await supabase.auth.mfa.unenroll({ factorId: f.id });
-        }
+      const totps = factors?.totp ?? [];
+      if (totps.some((f) => f.status === "verified")) {
+        navigate({ to: "/mfa-verify", search: { redirect: redirectTo } });
+        return;
+      }
+      // Clean up any unverified factors so we always start fresh.
+      for (const f of totps) {
+        await supabase.auth.mfa.unenroll({ factorId: f.id });
       }
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: `Authenticator (${new Date().toLocaleDateString()})`,
+        friendlyName: `Authenticator ${Date.now()}`,
       });
       if (cancelled) return;
       if (error || !data) {
