@@ -8,6 +8,82 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.10.0",
+    date: "2026-05-16",
+    title: "iPad writing comfort: no-select canvas & extendable space",
+    sections: [
+      {
+        heading: "Fixed",
+        items: [
+          "Apple Pencil no longer triggers an iOS text-selection highlight over the canvas. The HandwritingCanvas container and <canvas> element now set userSelect/WebkitUserSelect: 'none' and WebkitTouchCallout: 'none', so the Pencil can start a stroke immediately without needing a stray tap outside the canvas to clear the selection state.",
+        ],
+      },
+      {
+        heading: "Added",
+        items: [
+          "Extendable writing space on /ipad. The canvas is wrapped in a scrollable container (maxHeight: 70vh, overflowY: auto, -webkit-overflow-scrolling: touch) and the toolbar has a new + button that calls a new HandwritingCanvas.extend(extraPx = 300) imperative method. Each tap grows the canvas height by 300px so doormen can keep writing past the original viewport and scroll the note up as they go.",
+          "HandwritingCanvas now tracks a baseHeight via ResizeObserver and an extraHeight state, applying height = baseHeight + extraHeight (with a 300px minHeight fallback) so growth is additive and survives width changes without clipping existing ink.",
+        ],
+      },
+      {
+        heading: "Files touched",
+        items: [
+          "src/components/HandwritingCanvas.tsx — no-select CSS, ResizeObserver, extend() on the imperative handle.",
+          "src/routes/_authenticated/ipad.tsx — scroll wrapper, Plus 'add space' button wired to canvasRef.current?.extend(300).",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.9.0",
+    date: "2026-05-16",
+    title: "Login UX: password visibility & reset flow",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Show/hide password toggle on /login — Eye / EyeOff icon inside the password input flips type='password' ↔ type='text' so users can verify what they typed before submitting.",
+          "Forgot-password link on /login that calls supabase.auth.resetPasswordForEmail(email, { redirectTo: <origin>/reset-password }) and surfaces a 'Check your inbox' info message inline.",
+          "New /reset-password page (src/routes/reset-password.tsx, ssr: false) that listens for PASSWORD_RECOVERY / SIGNED_IN auth events, accepts a new password (also with the show/hide toggle), calls supabase.auth.updateUser({ password }), and redirects to /admin on success.",
+        ],
+      },
+      {
+        heading: "Notes on the in-editor preview",
+        items: [
+          "Google 'Continue with' rendering blank and intermittent login failures inside the Lovable preview iframe are a third-party-cookie limitation of the Cloud Dev auth environment, not an app bug — confirmed working on the published site and on iPad Safari. The fix is to open the preview in its own tab; no code change required.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.8.1",
+    date: "2026-05-16",
+    title: "Per-note resizing on the monitor",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Resize handle on each sticky on /monitor — every NoteCard now persists its own width/height to a new notes.size_w / notes.size_h pair so individual notes can be sized independently of the board's global size setting. Drag-to-resize updates local state during the drag and writes to Supabase on release.",
+        ],
+      },
+      {
+        heading: "Database",
+        items: [
+          "Migration adds nullable integer columns size_w and size_h to public.notes (defaulting to NULL so existing notes fall back to the board-wide size). RLS unchanged — the existing notes_update policy already covers the new columns since it grants column-agnostic UPDATE to authenticated allowlisted users.",
+          "src/integrations/supabase/types.ts regenerated to expose size_w / size_h on the notes Row/Insert/Update types.",
+        ],
+      },
+      {
+        heading: "Files touched",
+        items: [
+          "supabase/migrations/20260516075719_*.sql — ALTER TABLE notes ADD COLUMN size_w int, size_h int.",
+          "src/components/NoteCard.tsx — resize handle, controlled size state, debounced persistence.",
+          "src/routes/_authenticated/monitor.tsx — passes per-note size through and ignores the global size when a row-level override exists.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.8.0",
     date: "2026-05-15",
     title: "Rebrand to Future Solutions Digital Notes",
