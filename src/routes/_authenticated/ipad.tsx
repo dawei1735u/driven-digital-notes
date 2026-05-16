@@ -285,10 +285,7 @@ function IpadPage() {
                   />
                 }
               >
-                <HandwritingCanvas
-                  ref={canvasRef}
-                  onStampPlaced={() => setPendingStamp(null)}
-                />
+                <HandwritingCanvas ref={canvasRef} />
               </ClientOnly>
               {pendingStamp && (
                 <div
