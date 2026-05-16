@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/ipad")({
   }),
   head: () => ({
     meta: [
-      { title: "Write a Task — Tasks" },
+      { title: "Write a Task — PurposeDriven NoteTaking APP" },
       {
         name: "description",
         content: "Write a handwritten task on iPad.",
@@ -426,7 +426,7 @@ function IpadPage() {
             <ArrowLeft className="h-4 w-4" /> Home
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">
-            Tasks ·{" "}
+            PurposeDriven NoteTaking APP ·{" "}
             {isEdit ? (
               <span className="inline-flex items-center gap-1">
                 <Pencil className="h-5 w-5" /> Edit
@@ -439,7 +439,7 @@ function IpadPage() {
             to="/monitor"
             className="text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            Tasks Board →
+            PurposeDriven NoteTaking APP Board →
           </Link>
           <button
             onClick={handleSignOut}

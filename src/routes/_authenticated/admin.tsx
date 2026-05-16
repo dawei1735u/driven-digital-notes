@@ -32,7 +32,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Admin Panel — Tasks" },
+      { title: "Admin Panel — PurposeDriven NoteTaking APP" },
       { name: "description", content: "Manage notes, view stats, and run bulk actions." },
     ],
   }),
@@ -216,10 +216,10 @@ function AdminPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Admin</p>
-            <h1 className="text-xl font-bold">Tasks Control Panel</h1>
+            <h1 className="text-xl font-bold">PurposeDriven NoteTaking APP Control Panel</h1>
           </div>
           <nav className="flex items-center gap-3 text-sm">
-            <Link to="/monitor" className="text-muted-foreground hover:underline">Tasks Board</Link>
+            <Link to="/monitor" className="text-muted-foreground hover:underline">PurposeDriven NoteTaking APP Board</Link>
             <Link to="/ipad" className="text-muted-foreground hover:underline">Write Task</Link>
             <Link to="/changelog" className="text-muted-foreground hover:underline">Changelog</Link>
             <button onClick={signOut} className="rounded-md border border-border px-3 py-1.5 text-xs">
