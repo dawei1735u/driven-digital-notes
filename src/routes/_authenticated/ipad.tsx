@@ -105,6 +105,27 @@ function IpadPage() {
   const [pendingStamp, setPendingStamp] = useState<"bullet" | "number" | null>(null);
   const [mode, setMode] = useState<"handwrite" | "type">("handwrite");
   const [typedText, setTypedText] = useState("");
+  const typedRef = useRef<HTMLTextAreaElement>(null);
+  const noteWrapRef = useRef<HTMLDivElement>(null);
+
+  // Auto-size the Type textarea so it always matches at least the sticky-note
+  // aspect ratio (3.5:3) and grows to fit any longer content.
+  useEffect(() => {
+    if (mode !== "type") return;
+    const el = typedRef.current;
+    const wrap = noteWrapRef.current;
+    if (!el || !wrap) return;
+    const resize = () => {
+      const width = wrap.getBoundingClientRect().width;
+      const minH = Math.round((width * 3) / 3.5);
+      el.style.height = "auto";
+      el.style.height = Math.max(minH, el.scrollHeight) + "px";
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(wrap);
+    return () => ro.disconnect();
+  }, [mode, typedText]);
 
   const armStamp = (type: "bullet" | "number") => {
     if (pendingStamp === type) {
@@ -457,6 +478,7 @@ function IpadPage() {
           </div>
           <div>
             <div
+              ref={noteWrapRef}
               style={{
                 maxHeight: "70vh",
                 overflowY: "auto",
@@ -495,13 +517,13 @@ function IpadPage() {
                 </>
               ) : (
                 <textarea
+                  ref={typedRef}
                   value={typedText}
                   onChange={(e) => setTypedText(e.target.value)}
                   placeholder="Type your note here…"
-                  className="block w-full resize-y rounded-md p-6 text-lg leading-relaxed text-foreground outline-none placeholder:text-foreground/40"
+                  className="block w-full resize-none overflow-hidden rounded-md p-6 text-lg leading-relaxed text-foreground outline-none placeholder:text-foreground/40"
                   style={{
                     background: "var(--sticky-yellow)",
-                    minHeight: "60vh",
                     boxShadow:
                       "0 14px 28px -10px rgba(0,0,0,0.25), 0 6px 12px -6px rgba(0,0,0,0.18)",
                     fontFamily:
