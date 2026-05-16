@@ -6,11 +6,11 @@ import daveLogo from "@/assets/dave-logo.png";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Tasks — Digital Doorman Shift Handoff" },
+      { title: "Tasks" },
       {
         name: "description",
         content:
-          "Handwritten shift notes for doorman and front-desk staff. Write on iPad, view on the lobby monitor.",
+          "Handwritten tasks for doorman and front-desk staff. Write on iPad, view on the lobby monitor.",
       },
     ],
   }),

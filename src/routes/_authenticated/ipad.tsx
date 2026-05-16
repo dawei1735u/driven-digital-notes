@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/ipad")({
       { title: "Write a Task — Tasks" },
       {
         name: "description",
-        content: "Write a handwritten shift handoff note on iPad.",
+        content: "Write a handwritten task on iPad.",
       },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
     ],

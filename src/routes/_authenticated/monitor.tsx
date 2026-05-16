@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/monitor")({
       { title: "Tasks" },
       {
         name: "description",
-        content: "Live wall of open shift notes for doorman handoff.",
+        content: "Live wall of open tasks.",
       },
     ],
   }),
