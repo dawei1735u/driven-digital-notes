@@ -139,6 +139,8 @@ export const adminListNotes = createServerFn({ method: "POST" })
       .object({
         status: z.enum(["all", "open", "resolved"]).default("all"),
         search: z.string().max(200).optional(),
+        fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        toDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
         limit: z.number().int().min(1).max(500).default(200),
       })
       .parse(input ?? {}),
@@ -158,6 +160,8 @@ export const adminListNotes = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(data.limit);
     if (data.status !== "all") q = q.eq("status", data.status);
+    if (data.fromDate) q = q.gte("display_date", data.fromDate);
+    if (data.toDate) q = q.lte("display_date", data.toDate);
     if (data.search && data.search.trim()) {
       const s = `%${data.search.trim()}%`;
       q = q.or(
