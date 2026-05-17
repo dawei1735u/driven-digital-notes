@@ -113,6 +113,13 @@ function MonitorPageInner() {
   const snap = (v: number) => Math.round(v / GRID_SIZE) * GRID_SIZE;
   const boardRef = useRef<HTMLDivElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [zOrder, setZOrder] = useState<Record<string, number>>({});
+  const zCounterRef = useRef(10);
+  const bringToFront = useCallback((id: string) => {
+    zCounterRef.current += 1;
+    const next = zCounterRef.current;
+    setZOrder((m) => (m[id] === next ? m : { ...m, [id]: next }));
+  }, []);
   const dragRef = useRef<{
     id: string;
     offsetX: number;
