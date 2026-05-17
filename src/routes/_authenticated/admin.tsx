@@ -57,6 +57,8 @@ function AdminPage() {
 
   const [statusFilter, setStatusFilter] = useState<"all" | "open" | "resolved">("all");
   const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const ctx = useQuery({ queryKey: ["admin", "ctx"], queryFn: () => fetchCtx() });
