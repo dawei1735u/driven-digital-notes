@@ -8,6 +8,27 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.16.0",
+    date: "2026-05-17",
+    title: "Click-to-front sticky notes on /monitor",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "Tapping or dragging any sticky on `/monitor` now brings it to the foreground so the corner resize handle is reachable and overlapping notes can be read/widened without manually moving neighbors out of the way.",
+          "Per-note z-index tracking via a `zOrder: Record<string, number>` state plus a `zCounterRef` (starts at 10). New `bringToFront(id)` `useCallback` increments the counter and writes the new value into `zOrder`.",
+          "`onPointerDown` on each note wrapper calls `bringToFront(n.id)`. The wrapper's inline `zIndex` resolves to `9999` while the note is actively being dragged (`dragRef.current?.id === n.id`), otherwise `zOrder[n.id] ?? 1` — so the most recently touched note always stays on top.",
+        ],
+      },
+      {
+        heading: "Files touched",
+        items: [
+          "src/routes/_authenticated/monitor.tsx — `zOrder` state, `zCounterRef`, `bringToFront` callback, per-note `onPointerDown` + `zIndex` wiring.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.15.1",
     date: "2026-05-17",
     title: "Preview-iframe login hardening",
