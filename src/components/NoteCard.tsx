@@ -52,6 +52,7 @@ export function NoteCard({
   onLocalUpdate,
   onEdit,
   onResizeStart,
+  onExpand,
 }: {
   note: Note;
   width: number;
@@ -60,6 +61,7 @@ export function NoteCard({
   onLocalUpdate?: (id: string, patch: Partial<Note>) => void;
   onEdit?: (id: string) => void;
   onResizeStart?: (id: string, e: React.PointerEvent) => void;
+  onExpand?: (id: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
