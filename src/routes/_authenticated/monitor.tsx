@@ -588,6 +588,13 @@ function MonitorPageInner() {
             </button>
           )}
         </div>
+        <button
+          onClick={tileAll}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-200 hover:bg-amber-300/20"
+          title="Arrange all notes in a grid"
+        >
+          <LayoutGrid className="h-3.5 w-3.5" /> Tile notes
+        </button>
       </div>
 
       <section className="p-2">
