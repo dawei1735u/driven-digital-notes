@@ -386,6 +386,32 @@ function AdminPage() {
             placeholder="Search apartment, author, text…"
             className="ml-2 w-64 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
           />
+          <label className="ml-2 flex items-center gap-1 text-xs text-muted-foreground">
+            From
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="rounded-md border border-input bg-background px-2 py-1 text-sm"
+            />
+          </label>
+          <label className="flex items-center gap-1 text-xs text-muted-foreground">
+            To
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="rounded-md border border-input bg-background px-2 py-1 text-sm"
+            />
+          </label>
+          {(fromDate || toDate) && (
+            <button
+              onClick={() => { setFromDate(""); setToDate(""); }}
+              className="rounded-md border border-border px-2 py-1 text-xs"
+            >
+              Clear dates
+            </button>
+          )}
           <div className="ml-auto flex gap-2">
             <button
               disabled={selected.size === 0}
