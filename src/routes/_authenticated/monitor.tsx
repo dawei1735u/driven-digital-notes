@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { NoteCard } from "@/components/NoteCard";
 import { EditNoteDialog } from "@/components/EditNoteDialog";
-import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic, LayoutGrid } from "lucide-react";
+import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic, LayoutGrid, X } from "lucide-react";
 
 type Note = Tables<"notes">;
 
@@ -113,6 +113,15 @@ function MonitorPageInner() {
   const snap = (v: number) => Math.round(v / GRID_SIZE) * GRID_SIZE;
   const boardRef = useRef<HTMLDivElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!expandedId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExpandedId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [expandedId]);
   const [zOrder, setZOrder] = useState<Record<string, number>>({});
   const zCounterRef = useRef(10);
   const bringToFront = useCallback((id: string) => {
@@ -690,6 +699,7 @@ function MonitorPageInner() {
                   onDragStart={onDragStart}
                   onLocalUpdate={onLocalUpdate}
                   onEdit={(id) => setEditingId(id)}
+                  onExpand={(id) => setExpandedId(id)}
                   onResizeStart={onResizeStart}
                 />
               </div>
@@ -706,6 +716,35 @@ function MonitorPageInner() {
           onLocalUpdate(editingId, patch);
         }}
       />
+      {expandedId && (() => {
+        const n = notes.find((x) => x.id === expandedId);
+        if (!n) return null;
+        return (
+          <div
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/85 backdrop-blur-sm p-6"
+            onClick={() => setExpandedId(null)}
+          >
+            <button
+              onClick={() => setExpandedId(null)}
+              className="absolute right-6 top-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
+              aria-label="Close expanded note"
+            >
+              <X className="h-4 w-4" /> Close
+            </button>
+            <div
+              className="relative max-h-[90vh] max-w-[92vw] overflow-auto rounded-lg bg-white shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={n.image_url}
+                alt={`Handwritten note by ${n.written_by}`}
+                className="block h-auto w-auto max-h-[90vh] max-w-[92vw] select-none"
+                draggable={false}
+              />
+            </div>
+          </div>
+        );
+      })()}
     </main>
   );
 }

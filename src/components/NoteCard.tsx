@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil, PenLine, Undo2, Play, Pause, Volume2 } from "lucide-react";
+import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil, PenLine, Undo2, Play, Pause, Volume2, Maximize2 } from "lucide-react";
 
 type Strike = { x1: number; y1: number; x2: number; y2: number };
 
@@ -52,6 +52,7 @@ export function NoteCard({
   onLocalUpdate,
   onEdit,
   onResizeStart,
+  onExpand,
 }: {
   note: Note;
   width: number;
@@ -60,6 +61,7 @@ export function NoteCard({
   onLocalUpdate?: (id: string, patch: Partial<Note>) => void;
   onEdit?: (id: string) => void;
   onResizeStart?: (id: string, e: React.PointerEvent) => void;
+  onExpand?: (id: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
@@ -236,6 +238,16 @@ export function NoteCard({
             title="Edit note"
           >
             <Pencil className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {onExpand && (
+          <button
+            onClick={() => onExpand(note.id)}
+            className="inline-flex items-center gap-1 rounded p-1 opacity-60 hover:bg-[var(--ink)]/10 hover:opacity-100"
+            aria-label="Expand note"
+            title="Expand note for easier reading"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
           </button>
         )}
         <Popover open={dateOpen} onOpenChange={setDateOpen}>
