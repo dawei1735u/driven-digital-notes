@@ -106,6 +106,8 @@ function MonitorPageInner() {
   const [statusFilter, setStatusFilter] = useState<"open" | "resolved" | "all">(
     "open",
   );
+  const [fromDate, setFromDate] = useState<string>("");
+  const [toDate, setToDate] = useState<string>("");
   const boardRef = useRef<HTMLDivElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const dragRef = useRef<{
