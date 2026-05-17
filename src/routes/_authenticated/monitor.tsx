@@ -529,14 +529,7 @@ function MonitorPageInner() {
                 second: "2-digit",
               })}
               </span>
-        <button
-          onClick={tileAll}
-          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/80 hover:bg-white/10 hover:text-white"
-          title="Arrange all notes in a grid"
-        >
-          <LayoutGrid className="h-3.5 w-3.5" /> Tile notes
-        </button>
-      </div>
+            </div>
             <div className="text-sm text-white/60" suppressHydrationWarning>
               {now.toLocaleDateString([], {
                 weekday: "long",
