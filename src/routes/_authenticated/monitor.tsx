@@ -716,6 +716,35 @@ function MonitorPageInner() {
           onLocalUpdate(editingId, patch);
         }}
       />
+      {expandedId && (() => {
+        const n = notes.find((x) => x.id === expandedId);
+        if (!n) return null;
+        return (
+          <div
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/85 backdrop-blur-sm p-6"
+            onClick={() => setExpandedId(null)}
+          >
+            <button
+              onClick={() => setExpandedId(null)}
+              className="absolute right-6 top-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
+              aria-label="Close expanded note"
+            >
+              <X className="h-4 w-4" /> Close
+            </button>
+            <div
+              className="relative max-h-[90vh] max-w-[92vw] overflow-auto rounded-lg bg-white shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={n.image_url}
+                alt={`Handwritten note by ${n.written_by}`}
+                className="block h-auto w-auto max-h-[90vh] max-w-[92vw] select-none"
+                draggable={false}
+              />
+            </div>
+          </div>
+        );
+      })()}
     </main>
   );
 }
