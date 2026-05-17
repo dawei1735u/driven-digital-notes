@@ -143,6 +143,69 @@ bun run dev      # vite dev server
 
 `.env` (Supabase URL + publishable key) is provisioned automatically by Lovable Cloud — do not edit by hand.
 
+## Setup
+
+This project runs on **Lovable Cloud** (managed Supabase). If you're forking it or wiring up a fresh backend, you'll need the items below. In a Lovable-managed project everything here is provisioned automatically — this section is reference for self-hosters and for anyone debugging "notes won't save" / "images won't load".
+
+### Environment variables
+
+Client (`.env`, Vite-replaced at build time — safe to ship to the browser):
+
+| Variable | Purpose |
+|---|---|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Publishable (anon) key — RLS still applies |
+| `VITE_SUPABASE_PROJECT_ID` | Project ref, used by generated types |
+
+Server (runtime only, never bundled into client code):
+
+| Variable | Purpose |
+|---|---|
+| `SUPABASE_URL` | Same URL, read by `createServerFn` handlers |
+| `SUPABASE_PUBLISHABLE_KEY` | Used by `requireSupabaseAuth` to act **as the signed-in user** (RLS applies) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Admin client (`supabaseAdmin`) — **bypasses RLS**, server-only |
+| `LOVABLE_API_KEY` | Lovable AI Gateway — powers voice transcription and the YouTube summary tool |
+
+`SUPABASE_DB_URL` is also injected for tooling but isn't read by app code.
+
+### Storage buckets
+
+Both buckets are **private** (no public LIST, no public READ). Reads happen via short-lived signed URLs minted by the app.
+
+| Bucket | Holds | Written by | Read by |
+|---|---|---|---|
+| `note-images` | PNG export of every sticky (handwriting, typed, or transcribed voice note) | `/ipad` on save | `/monitor` via signed URL on each `NoteCard` |
+| `note-audio` | Original `MediaRecorder` blob for voice notes | `VoiceRecorder` on save | `NoteCard` playback toggle via signed URL |
+
+Create them with:
+
+```sql
+insert into storage.buckets (id, name, public) values ('note-images', 'note-images', false);
+insert into storage.buckets (id, name, public) values ('note-audio',  'note-audio',  false);
+```
+
+### Required policies
+
+**`notes` table** — workspace-scoped, allowlist-gated:
+
+- **SELECT / INSERT / UPDATE**: `is_user_allowed(auth.uid()) AND workspace_id IS NOT DISTINCT FROM get_my_workspace_id()` — only invited users can read or write, and only inside their own workspace.
+- **DELETE**: `has_role(auth.uid(), 'admin')` — admins only.
+
+**`storage.objects` for `note-images` and `note-audio`** — same allowlist gate, no public access:
+
+- **SELECT** (download / signed-URL minting): `bucket_id IN ('note-images','note-audio') AND is_user_allowed(auth.uid())`
+- **INSERT** (upload from `/ipad` and `VoiceRecorder`): same predicate
+- **UPDATE / DELETE**: `has_role(auth.uid(), 'admin')` — admins only
+- **No LIST policy** — clients never enumerate the bucket; they only read paths they got from the `notes` row's `image_url` / `audio_url`.
+
+**`allowed_users` & `user_roles`** — admin-managed, see `supabase/migrations/`. The bootstrap path uses `is_user_allowed()` (SECURITY DEFINER) which lets the first signed-in user self-claim admin when the roles table is empty.
+
+### Common failure modes
+
+- **"new row violates row-level security policy" on save** → the signed-in email isn't in `allowed_users`. Invite them from `/admin`.
+- **Stickies render as broken images on `/monitor`** → the `note-images` bucket is missing the SELECT policy above, or the bucket was accidentally created as `public = true` and then flipped without re-adding policies.
+- **Voice playback 403s** → same as above for `note-audio`, or `LOVABLE_API_KEY` is missing so the transcript step never ran.
+
 ## Changelog
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
