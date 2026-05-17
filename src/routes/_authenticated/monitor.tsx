@@ -106,6 +106,8 @@ function MonitorPageInner() {
   const [statusFilter, setStatusFilter] = useState<"open" | "resolved" | "all">(
     "open",
   );
+  const [fromDate, setFromDate] = useState<string>("");
+  const [toDate, setToDate] = useState<string>("");
   const boardRef = useRef<HTMLDivElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const dragRef = useRef<{
@@ -381,7 +383,12 @@ function MonitorPageInner() {
     };
   }, [notes]);
 
-  const filtered = notes;
+  const filtered = notes.filter((n) => {
+    const d = (n.display_date ?? "").slice(0, 10);
+    if (fromDate && d < fromDate) return false;
+    if (toDate && d > toDate) return false;
+    return true;
+  });
 
   const positioned = autoLayout(filtered, noteSize, boardWidth);
   const boardHeight = Math.max(
@@ -522,6 +529,32 @@ function MonitorPageInner() {
           options={["open", "resolved"]}
           onChange={(v) => setStatusFilter(v as "open" | "resolved" | "all")}
         />
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs uppercase tracking-wider text-white/40">Date</span>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-xs text-white [color-scheme:dark]"
+            aria-label="From date"
+          />
+          <span className="text-xs text-white/40">→</span>
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-xs text-white [color-scheme:dark]"
+            aria-label="To date"
+          />
+          {(fromDate || toDate) && (
+            <button
+              onClick={() => { setFromDate(""); setToDate(""); }}
+              className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/70 hover:bg-white/10 hover:text-white"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       <section className="p-2">
