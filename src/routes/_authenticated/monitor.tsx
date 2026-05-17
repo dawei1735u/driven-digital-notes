@@ -308,8 +308,12 @@ function MonitorPageInner() {
       if (!drag || !board) return;
       if (e.pointerId !== drag.pointerId) return;
       const boardRect = board.getBoundingClientRect();
-      const x = Math.max(0, e.clientX - boardRect.left - drag.offsetX);
-      const y = Math.max(0, e.clientY - boardRect.top - drag.offsetY);
+      let x = Math.max(0, e.clientX - boardRect.left - drag.offsetX);
+      let y = Math.max(0, e.clientY - boardRect.top - drag.offsetY);
+      if (snapToGrid) {
+        x = snap(x);
+        y = snap(y);
+      }
       setNotes((arr) =>
         arr.map((n) =>
           n.id === drag.id ? { ...n, position_x: x, position_y: y } : n,
