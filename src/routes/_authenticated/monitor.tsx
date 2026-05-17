@@ -699,6 +699,7 @@ function MonitorPageInner() {
                   onDragStart={onDragStart}
                   onLocalUpdate={onLocalUpdate}
                   onEdit={(id) => setEditingId(id)}
+                  onExpand={(id) => setExpandedId(id)}
                   onResizeStart={onResizeStart}
                 />
               </div>
