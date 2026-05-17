@@ -108,6 +108,9 @@ function MonitorPageInner() {
   );
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+  const [snapToGrid, setSnapToGrid] = useState<boolean>(false);
+  const GRID_SIZE = 24;
+  const snap = (v: number) => Math.round(v / GRID_SIZE) * GRID_SIZE;
   const boardRef = useRef<HTMLDivElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const dragRef = useRef<{
