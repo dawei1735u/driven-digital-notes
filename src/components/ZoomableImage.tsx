@@ -195,6 +195,7 @@ export function ZoomableImage({
       onDoubleClick={onDoubleClick}
     >
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
         draggable={false}
@@ -205,21 +206,37 @@ export function ZoomableImage({
           transition: pointersRef.current.size === 0 ? "transform 0.15s ease-out" : "none",
         }}
       />
-      <button
-        type="button"
-        onPointerDown={(e) => e.stopPropagation()}
-        onDoubleClick={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          resetZoom();
-        }}
-        disabled={scale <= 1.001}
-        className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-40"
-        aria-label="Reset zoom"
-      >
-        <Minimize2 className="h-3.5 w-3.5" />
-        Reset · {scale.toFixed(1)}x
-      </button>
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            fitToViewport();
+          }}
+          className="inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur transition hover:bg-black/85"
+          aria-label="Fit to viewport"
+        >
+          <Maximize className="h-3.5 w-3.5" />
+          Fit
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            resetZoom();
+          }}
+          disabled={scale <= 1.001}
+          className="inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="Reset zoom"
+        >
+          <Minimize2 className="h-3.5 w-3.5" />
+          Reset · {scale.toFixed(1)}x
+        </button>
+      </div>
     </div>
   );
 }
