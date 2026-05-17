@@ -390,6 +390,39 @@ function MonitorPageInner() {
     return true;
   });
 
+  const tileAll = useCallback(async () => {
+    const board = boardRef.current;
+    const bw = board?.getBoundingClientRect().width ?? boardWidth;
+    const gap = 24;
+    const width = noteSize;
+    const cols = Math.max(1, Math.floor((bw - BOARD_PADDING * 2 + gap) / (width + gap)));
+    const targets = filtered.map((n, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      return {
+        id: n.id,
+        position_x: BOARD_PADDING + col * (width + gap),
+        position_y: BOARD_PADDING + row * (width * NOTE_ASPECT + gap + 80),
+        width,
+      };
+    });
+    const targetMap = new Map(targets.map((t) => [t.id, t]));
+    setNotes((arr) =>
+      arr.map((n) => {
+        const t = targetMap.get(n.id);
+        return t ? { ...n, position_x: t.position_x, position_y: t.position_y, width: t.width } : n;
+      }),
+    );
+    await Promise.all(
+      targets.map((t) =>
+        supabase
+          .from("notes")
+          .update({ position_x: t.position_x, position_y: t.position_y, width: t.width })
+          .eq("id", t.id),
+      ),
+    );
+  }, [filtered, noteSize, boardWidth]);
+
   const positioned = autoLayout(filtered, noteSize, boardWidth);
   const boardHeight = Math.max(
     600,
