@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Minimize2 } from "lucide-react";
 
 type Pt = { x: number; y: number };
 
@@ -32,10 +33,14 @@ export function ZoomableImage({
 
   const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+  const resetZoom = () => {
+    setScale(1);
+    setTx(0);
+    setTy(0);
+  };
+
   const applyZoomAt = (newScale: number, cx: number, cy: number) => {
     const s = clamp(newScale, MIN, MAX);
-    // Keep the container point (cx, cy) anchored: cx = tx + scale * ox
-    // ox = (cx - tx) / scale; new tx = cx - s * ox
     const ox = (cx - tx) / scale;
     const oy = (cy - ty) / scale;
     let nx = cx - s * ox;
@@ -72,15 +77,12 @@ export function ZoomableImage({
       return;
     }
 
-    // Double-tap detection
     const now = Date.now();
     const last = lastTapRef.current;
     if (last && now - last.t < 300 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 30) {
       const cp = getContainerPoint(e);
       if (scale > 1.05) {
-        setScale(1);
-        setTx(0);
-        setTy(0);
+        resetZoom();
       } else {
         applyZoomAt(2.5, cp.x, cp.y);
       }
@@ -142,15 +144,12 @@ export function ZoomableImage({
     e.stopPropagation();
     const cp = getContainerPoint(e);
     if (scale > 1.05) {
-      setScale(1);
-      setTx(0);
-      setTy(0);
+      resetZoom();
     } else {
       applyZoomAt(2.5, cp.x, cp.y);
     }
   };
 
-  // Prevent the page from bouncing when pinching inside.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -164,7 +163,7 @@ export function ZoomableImage({
   return (
     <div
       ref={containerRef}
-      className={className}
+      className={`relative ${className ?? ""}`}
       style={{ touchAction: "none", overflow: "hidden", cursor: scale > 1 ? "grab" : "zoom-in" }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -184,6 +183,21 @@ export function ZoomableImage({
           transition: pointersRef.current.size === 0 ? "transform 0.15s ease-out" : "none",
         }}
       />
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onDoubleClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          resetZoom();
+        }}
+        disabled={scale <= 1.001}
+        className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-40"
+        aria-label="Reset zoom"
+      >
+        <Minimize2 className="h-3.5 w-3.5" />
+        Reset · {scale.toFixed(1)}x
+      </button>
     </div>
   );
 }
