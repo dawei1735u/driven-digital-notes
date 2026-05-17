@@ -147,7 +147,7 @@ function LoginPage() {
       setInfo(
         opened
           ? "Google sign-in opened in a new tab so 2FA can complete correctly."
-          : "Open this preview in a new browser tab, then use Continue with Google."
+          : "Open this preview in a new browser tab, then use Continue with Google.",
       );
       return;
     }
@@ -256,9 +256,7 @@ function LoginPage() {
           onClick={() => setMode(mode === "login" ? "signup" : "login")}
           className="mt-4 w-full text-center text-sm text-muted-foreground hover:underline"
         >
-          {mode === "login"
-            ? "No account? Create one"
-            : "Already have an account? Sign in"}
+          {mode === "login" ? "No account? Create one" : "Already have an account? Sign in"}
         </button>
       </div>
     </main>
