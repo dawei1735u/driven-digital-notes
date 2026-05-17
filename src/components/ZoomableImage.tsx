@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Minimize2 } from "lucide-react";
+import { Maximize, Minimize2 } from "lucide-react";
 
 type Pt = { x: number; y: number };
 
