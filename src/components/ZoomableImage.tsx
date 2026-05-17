@@ -40,6 +40,27 @@ export function ZoomableImage({
     setTy(0);
   };
 
+  const fitToViewport = () => {
+    const container = containerRef.current;
+    const img = imgRef.current;
+    if (!container || !img || !img.naturalWidth || !img.naturalHeight) return;
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    // With object-contain at scale=1, the image fits inside cw x ch with
+    // letterboxing. To make it fill the container (no letterboxing), scale
+    // by the larger ratio between container and rendered size.
+    const fitRatio = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
+    const renderedW = img.naturalWidth * fitRatio;
+    const renderedH = img.naturalHeight * fitRatio;
+    const s = clamp(Math.max(cw / renderedW, ch / renderedH), MIN, MAX);
+    // Center the now-larger image inside the container.
+    const scaledW = cw * s;
+    const scaledH = ch * s;
+    setScale(s);
+    setTx((cw - scaledW) / 2);
+    setTy((ch - scaledH) / 2);
+  };
+
   const applyZoomAt = (newScale: number, cx: number, cy: number) => {
     const s = clamp(newScale, MIN, MAX);
     const ox = (cx - tx) / scale;
