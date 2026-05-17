@@ -29,6 +29,15 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 
 ## Feature highlights
 
+### Tile notes & snap-to-grid (new in 1.15.0)
+- **Tile notes** button on `/monitor` arranges every visible sticky into a clean grid sized to the current note dimensions and board width, then persists the new `position_x` / `position_y` to Supabase in one batch. Use it whenever notes have drifted from manual dragging or pinch-resize.
+- **Snap to grid** toggle (LayoutGrid icon, persisted to `localStorage` under `shiftnotes:snapToGrid`). When on, dragged notes and the Tile action snap to a 24px grid via `snap(v) = round(v / GRID_SIZE) * GRID_SIZE`. `aria-pressed` reflects current state.
+
+### Preview-iframe login hardening (1.15.1)
+- Google sign-in now works from the Lovable preview iframe. `src/routes/login.tsx` detects iframe context via `isEmbeddedPreview()` (`window.self !== window.top`) and opens Google sign-in in a **new top-level tab** with `?oauth=google` appended so the OAuth state cookie can round-trip and 2FA can complete — instead of failing with "State is invalid" because third-party cookies are blocked in iframes.
+- Friendlier "Invalid login credentials" copy points users to **Continue with Google + 2FA** (the canonical flow for this account) instead of implying the typed password is wrong.
+- New `startGoogleSignIn()` helper centralizes the `lovable.auth.signInWithOAuth('google', { redirect_uri })` call so both the button click and the `?oauth=google` auto-resume path share one implementation.
+
 ### Pen color picker (new in 1.14.2)
 - **8-color swatch palette** on the `/ipad` toolbar — Black, Red, Blue, Green, Orange, Purple, Yellow, Pink. Tapping a swatch sets the active pen color and switches back to pen mode (so it works mid-erase).
 - **Custom color** — a hidden `<input type="color">` is wired to the last swatch so doormen can pick any hex value for highlights or annotations.

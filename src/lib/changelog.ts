@@ -8,6 +8,41 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.15.1",
+    date: "2026-05-17",
+    title: "Preview-iframe login hardening",
+    sections: [
+      {
+        heading: "Fixed",
+        items: [
+          "Google sign-in inside the Lovable preview iframe. `src/routes/login.tsx` now detects iframe context via `isEmbeddedPreview()` (`window.self !== window.top`); when embedded, the Google button opens the same login URL in a new top-level tab with `?oauth=google` so the OAuth state cookie can round-trip and 2FA can complete, instead of failing with 'State is invalid'.",
+          "Friendlier 'Invalid login credentials' copy on `/login` — guides users to Continue with Google + 2FA (the canonical flow for this account) rather than implying the password is wrong.",
+          "New `startGoogleSignIn()` helper centralizes the `lovable.auth.signInWithOAuth('google', { redirect_uri })` call so both the button click and the `?oauth=google` auto-redirect path use the same code.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.15.0",
+    date: "2026-05-17",
+    title: "Tile notes & snap-to-grid on /monitor",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "**Tile notes** button in the `/monitor` header — `tileAll()` arranges every visible note into a clean grid based on the current note size and board width, then persists the new `position_x` / `position_y` to Supabase in one batch. Useful after notes drift from manual dragging or pinch-resize.",
+          "**Snap to grid** toggle (LayoutGrid icon, persisted to `localStorage` under `shiftnotes:snapToGrid`). When on, dragged notes and the Tile action snap to a 24px grid via a `snap(v) = round(v / GRID_SIZE) * GRID_SIZE` helper applied inside the drag handler and the tile layout. Aria-pressed reflects state; tooltip explains behavior.",
+        ],
+      },
+      {
+        heading: "Files touched",
+        items: [
+          "src/routes/_authenticated/monitor.tsx — `snapToGrid` state + persistence effect, `snap()` helper, `tileAll()` callback, `LayoutGrid` icon, two new toolbar buttons.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.12.0",
     date: "2026-05-16",
     title: "Task lists, paste, and AI YouTube summaries on /ipad",
