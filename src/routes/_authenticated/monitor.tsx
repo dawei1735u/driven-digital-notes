@@ -344,7 +344,7 @@ function MonitorPageInner() {
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
     };
-  }, [notes]);
+  }, [notes, snapToGrid]);
 
   // Per-note resize handling
   const onResizeStart = useCallback(
