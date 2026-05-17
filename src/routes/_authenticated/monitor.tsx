@@ -668,11 +668,15 @@ function MonitorPageInner() {
             {positioned.map((n) => (
               <div
                 key={n.id}
+                onPointerDown={() => bringToFront(n.id)}
                 style={{
                   position: "absolute",
                   left: n.position_x ?? 0,
                   top: n.position_y ?? 0,
-                  zIndex: dragRef.current?.id === n.id ? 50 : 1,
+                  zIndex:
+                    dragRef.current?.id === n.id
+                      ? 9999
+                      : (zOrder[n.id] ?? 1),
                   transition:
                     dragRef.current?.id === n.id
                       ? "none"
