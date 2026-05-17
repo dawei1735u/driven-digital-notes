@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { NoteCard } from "@/components/NoteCard";
 import { EditNoteDialog } from "@/components/EditNoteDialog";
+import { ZoomableImage } from "@/components/ZoomableImage";
 import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic, LayoutGrid, X } from "lucide-react";
 
 type Note = Tables<"notes">;
@@ -732,15 +733,18 @@ function MonitorPageInner() {
               <X className="h-4 w-4" /> Close
             </button>
             <div
-              className="relative max-h-[90vh] max-w-[92vw] overflow-auto rounded-lg bg-white shadow-2xl"
+              className="relative rounded-lg bg-white shadow-2xl"
+              style={{ width: "min(92vw, 1400px)", height: "min(90vh, 1000px)" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <img
+              <ZoomableImage
                 src={n.image_url}
                 alt={`Handwritten note by ${n.written_by}`}
-                className="block h-auto w-auto max-h-[90vh] max-w-[92vw] select-none"
-                draggable={false}
+                className="h-full w-full rounded-lg"
               />
+              <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white">
+                Pinch, scroll, or double-tap to zoom
+              </div>
             </div>
           </div>
         );
