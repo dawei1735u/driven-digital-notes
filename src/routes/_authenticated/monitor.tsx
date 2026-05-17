@@ -144,6 +144,14 @@ function MonitorPageInner() {
     localStorage.setItem("shiftnotes:noteSize", String(noteSize));
   }, [noteSize]);
 
+  useEffect(() => {
+    const stored = localStorage.getItem("shiftnotes:snapToGrid");
+    if (stored === "1") setSnapToGrid(true);
+  }, []);
+  useEffect(() => {
+    localStorage.setItem("shiftnotes:snapToGrid", snapToGrid ? "1" : "0");
+  }, [snapToGrid]);
+
   // Pinch-to-resize: two-finger touch + ctrl+wheel (trackpad pinch)
   useEffect(() => {
     const board = boardRef.current;
