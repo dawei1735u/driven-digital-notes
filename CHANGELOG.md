@@ -6,6 +6,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.15.1] — 2026-05-17 — Preview-iframe login hardening
+
+### Fixed
+- **Google sign-in inside the Lovable preview iframe.** `src/routes/login.tsx` now detects iframe context via `isEmbeddedPreview()` (`window.self !== window.top`). When embedded, the Google button opens the same login URL in a **new top-level tab** with `?oauth=google` appended, so the OAuth state cookie can round-trip and 2FA can complete — previously the flow failed with "State is invalid" because third-party cookies are blocked inside the preview iframe.
+- **Friendlier 'Invalid login credentials' message.** The error copy now points the user to **Continue with Google + 2FA** (the actual flow for this account) instead of implying the typed password is wrong.
+
+### Changed
+- New `startGoogleSignIn()` helper wraps `lovable.auth.signInWithOAuth('google', { redirect_uri: window.location.origin + destinationAfterAuth() })` so both the button click and the `?oauth=google` auto-resume path share one implementation.
+
+### Files touched
+- `src/routes/login.tsx` — `friendlyAuthError`, `isEmbeddedPreview`, `startGoogleSignIn`, `handleGoogle` branch, `?oauth=google` query handling.
+
+---
+
+## [1.15.0] — 2026-05-17 — Tile notes & snap-to-grid on /monitor
+
+### Added
+- **Tile notes** button in the `/monitor` header. `tileAll()` arranges every visible note into a clean grid sized to the current note dimensions and board width, then persists the new `position_x` / `position_y` to Supabase in one batched update. Useful after notes drift apart from manual dragging or pinch-resize.
+- **Snap to grid** toggle (LayoutGrid icon). Persisted to `localStorage` under `shiftnotes:snapToGrid`. When on, dragged notes and the Tile action snap to a 24px grid via `snap(v) = Math.round(v / GRID_SIZE) * GRID_SIZE` applied inside the drag handler and the tile layout function. `aria-pressed` reflects state and the tooltip explains the behavior.
+
+### Files touched
+- `src/routes/_authenticated/monitor.tsx` — `snapToGrid` state + load/save effects, `snap()` helper, `tileAll()` callback, `LayoutGrid` icon import, two new toolbar buttons.
+
+---
+
 ## [1.7.0] — 2026-05-15 — Editable notes & doorman roster
 
 ## [1.7.2] — 2026-05-15 — Backup status panel & history chart
