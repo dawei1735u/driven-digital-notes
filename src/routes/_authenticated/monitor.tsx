@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { NoteCard } from "@/components/NoteCard";
 import { EditNoteDialog } from "@/components/EditNoteDialog";
-import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic } from "lucide-react";
+import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic, LayoutGrid } from "lucide-react";
 
 type Note = Tables<"notes">;
 
@@ -390,6 +390,39 @@ function MonitorPageInner() {
     return true;
   });
 
+  const tileAll = useCallback(async () => {
+    const board = boardRef.current;
+    const bw = board?.getBoundingClientRect().width ?? boardWidth;
+    const gap = 24;
+    const width = noteSize;
+    const cols = Math.max(1, Math.floor((bw - BOARD_PADDING * 2 + gap) / (width + gap)));
+    const targets = filtered.map((n, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      return {
+        id: n.id,
+        position_x: BOARD_PADDING + col * (width + gap),
+        position_y: BOARD_PADDING + row * (width * NOTE_ASPECT + gap + 80),
+        width,
+      };
+    });
+    const targetMap = new Map(targets.map((t) => [t.id, t]));
+    setNotes((arr) =>
+      arr.map((n) => {
+        const t = targetMap.get(n.id);
+        return t ? { ...n, position_x: t.position_x, position_y: t.position_y, width: t.width } : n;
+      }),
+    );
+    await Promise.all(
+      targets.map((t) =>
+        supabase
+          .from("notes")
+          .update({ position_x: t.position_x, position_y: t.position_y, width: t.width })
+          .eq("id", t.id),
+      ),
+    );
+  }, [filtered, noteSize, boardWidth]);
+
   const positioned = autoLayout(filtered, noteSize, boardWidth);
   const boardHeight = Math.max(
     600,
@@ -555,6 +588,13 @@ function MonitorPageInner() {
             </button>
           )}
         </div>
+        <button
+          onClick={tileAll}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-200 hover:bg-amber-300/20"
+          title="Arrange all notes in a grid"
+        >
+          <LayoutGrid className="h-3.5 w-3.5" /> Tile notes
+        </button>
       </div>
 
       <section className="p-2">
