@@ -29,6 +29,10 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 
 ## Feature highlights
 
+### Click-to-front sticky notes (new in 1.16.0)
+- Tapping or dragging any sticky on `/monitor` now raises it above its neighbors so the corner resize handle is reachable and overlapping notes can be widened/read without manually shuffling other stickies.
+- Implemented in `src/routes/_authenticated/monitor.tsx` via a `zOrder: Record<string, number>` state + `zCounterRef` (starts at 10) and a `bringToFront(id)` `useCallback`. Each note wrapper has `onPointerDown={() => bringToFront(n.id)}`; the wrapper's inline `zIndex` resolves to `9999` while actively dragging (`dragRef.current?.id === n.id`), otherwise `zOrder[n.id] ?? 1`.
+
 ### Tile notes & snap-to-grid (new in 1.15.0)
 - **Tile notes** button on `/monitor` arranges every visible sticky into a clean grid sized to the current note dimensions and board width, then persists the new `position_x` / `position_y` to Supabase in one batch. Use it whenever notes have drifted from manual dragging or pinch-resize.
 - **Snap to grid** toggle (LayoutGrid icon, persisted to `localStorage` under `shiftnotes:snapToGrid`). When on, dragged notes and the Tile action snap to a 24px grid via `snap(v) = round(v / GRID_SIZE) * GRID_SIZE`. `aria-pressed` reflects current state.
