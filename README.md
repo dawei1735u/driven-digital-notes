@@ -143,6 +143,8 @@ bun run dev      # vite dev server
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.15.1** — Preview-iframe login hardening: Google sign-in opens in a new top-level tab from the Lovable preview iframe so OAuth state + 2FA round-trip; friendlier "invalid credentials" copy pointing to Google + 2FA.
+- **1.15.0** — `/monitor`: **Tile notes** button arranges every sticky into a clean grid; **Snap to grid** toggle (24px) persisted in `localStorage`.
 - **1.14.2** — Pen color picker on `/ipad`: 8 preset swatches plus a custom hex picker, threaded into `HandwritingCanvas` via `setColor` / `getColor` so strokes and bullet/number stamps all inherit the chosen color.
 - **1.14.1** — `EditNoteDialog` simplified to Written by / Status / Display date — Shift, Apartment/Unit, and Category fields removed.
 - **1.14.0** — Edit-mode safety: hide the handwrite/type/voice switcher when opening a note via `/ipad?edit=<id>` and force initial mode to handwriting so existing notes can't be accidentally blanked.
