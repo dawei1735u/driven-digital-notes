@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Minimize2 } from "lucide-react";
+import { Maximize, Minimize2 } from "lucide-react";
 
 type Pt = { x: number; y: number };
 
@@ -13,6 +13,7 @@ export function ZoomableImage({
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const [scale, setScale] = useState(1);
   const [tx, setTx] = useState(0);
   const [ty, setTy] = useState(0);
@@ -37,6 +38,27 @@ export function ZoomableImage({
     setScale(1);
     setTx(0);
     setTy(0);
+  };
+
+  const fitToViewport = () => {
+    const container = containerRef.current;
+    const img = imgRef.current;
+    if (!container || !img || !img.naturalWidth || !img.naturalHeight) return;
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    // With object-contain at scale=1, the image fits inside cw x ch with
+    // letterboxing. To make it fill the container (no letterboxing), scale
+    // by the larger ratio between container and rendered size.
+    const fitRatio = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
+    const renderedW = img.naturalWidth * fitRatio;
+    const renderedH = img.naturalHeight * fitRatio;
+    const s = clamp(Math.max(cw / renderedW, ch / renderedH), MIN, MAX);
+    // Center the now-larger image inside the container.
+    const scaledW = cw * s;
+    const scaledH = ch * s;
+    setScale(s);
+    setTx((cw - scaledW) / 2);
+    setTy((ch - scaledH) / 2);
   };
 
   const applyZoomAt = (newScale: number, cx: number, cy: number) => {
@@ -173,6 +195,7 @@ export function ZoomableImage({
       onDoubleClick={onDoubleClick}
     >
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
         draggable={false}
@@ -183,21 +206,37 @@ export function ZoomableImage({
           transition: pointersRef.current.size === 0 ? "transform 0.15s ease-out" : "none",
         }}
       />
-      <button
-        type="button"
-        onPointerDown={(e) => e.stopPropagation()}
-        onDoubleClick={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          resetZoom();
-        }}
-        disabled={scale <= 1.001}
-        className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-40"
-        aria-label="Reset zoom"
-      >
-        <Minimize2 className="h-3.5 w-3.5" />
-        Reset · {scale.toFixed(1)}x
-      </button>
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            fitToViewport();
+          }}
+          className="inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur transition hover:bg-black/85"
+          aria-label="Fit to viewport"
+        >
+          <Maximize className="h-3.5 w-3.5" />
+          Fit
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            resetZoom();
+          }}
+          disabled={scale <= 1.001}
+          className="inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur transition hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="Reset zoom"
+        >
+          <Minimize2 className="h-3.5 w-3.5" />
+          Reset · {scale.toFixed(1)}x
+        </button>
+      </div>
     </div>
   );
 }
