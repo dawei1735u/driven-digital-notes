@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.16.0] — 2026-05-17 — Click-to-front sticky notes on /monitor
+
+### Added
+- **Click any sticky to bring it to the foreground.** Tapping or dragging a note on `/monitor` now raises it above its neighbors so the corner resize handle is reachable and overlapping notes can be widened/read without manually shuffling other stickies out of the way.
+- Per-note z-index tracking: new `zOrder: Record<string, number>` state plus a `zCounterRef` (starts at 10). `bringToFront(id)` is a `useCallback` that increments the counter and writes the new value into `zOrder`.
+- Each note wrapper now has `onPointerDown={() => bringToFront(n.id)}`. The wrapper's inline `zIndex` resolves to `9999` while the note is actively being dragged (`dragRef.current?.id === n.id`), otherwise `zOrder[n.id] ?? 1` — so the most recently touched note always stays on top.
+
+### Files touched
+- `src/routes/_authenticated/monitor.tsx` — `zOrder` state, `zCounterRef`, `bringToFront` callback, per-note `onPointerDown` + `zIndex` wiring.
+
+---
+
 ## [1.15.1] — 2026-05-17 — Preview-iframe login hardening
 
 ### Fixed
