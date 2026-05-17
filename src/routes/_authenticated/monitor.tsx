@@ -113,6 +113,15 @@ function MonitorPageInner() {
   const snap = (v: number) => Math.round(v / GRID_SIZE) * GRID_SIZE;
   const boardRef = useRef<HTMLDivElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!expandedId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExpandedId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [expandedId]);
   const [zOrder, setZOrder] = useState<Record<string, number>>({});
   const zCounterRef = useRef(10);
   const bringToFront = useCallback((id: string) => {
