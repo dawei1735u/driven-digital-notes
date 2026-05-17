@@ -147,6 +147,7 @@ bun run dev      # vite dev server
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.16.0** — `/monitor`: click or drag a sticky to bring it to the foreground — per-note z-index tracking via `zOrder` state + `bringToFront(id)`, so overlapping notes can be reached and resized.
 - **1.15.1** — Preview-iframe login hardening: Google sign-in opens in a new top-level tab from the Lovable preview iframe so OAuth state + 2FA round-trip; friendlier "invalid credentials" copy pointing to Google + 2FA.
 - **1.15.0** — `/monitor`: **Tile notes** button arranges every sticky into a clean grid; **Snap to grid** toggle (24px) persisted in `localStorage`.
 - **1.14.2** — Pen color picker on `/ipad`: 8 preset swatches plus a custom hex picker, threaded into `HandwritingCanvas` via `setColor` / `getColor` so strokes and bullet/number stamps all inherit the chosen color.
