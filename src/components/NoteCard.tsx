@@ -240,6 +240,16 @@ export function NoteCard({
             <Pencil className="h-3.5 w-3.5" />
           </button>
         )}
+        {onExpand && (
+          <button
+            onClick={() => onExpand(note.id)}
+            className="inline-flex items-center gap-1 rounded p-1 opacity-60 hover:bg-[var(--ink)]/10 hover:opacity-100"
+            aria-label="Expand note"
+            title="Expand note for easier reading"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+        )}
         <Popover open={dateOpen} onOpenChange={setDateOpen}>
           <PopoverTrigger asChild>
             <button
