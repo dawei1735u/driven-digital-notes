@@ -6,15 +6,24 @@ import { supabase } from "@/integrations/supabase/client";
 function friendlyAuthError(err: unknown) {
   const message = err instanceof Error ? err.message : "Something went wrong";
   if (message.toLowerCase().includes("invalid login credentials")) {
-    return "That email and password were not accepted. If you created this account with Google, use Continue with Google. Otherwise, use Forgot password to set a new password.";
+    return "That password is not set for this app login. If you normally sign in with Google + 2FA, use Continue with Google. Your Google password will not work in the email/password field.";
   }
   return message;
+}
+
+function isEmbeddedPreview() {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
 }
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
     reason: typeof search.reason === "string" ? search.reason : undefined,
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+    oauth: typeof search.oauth === "string" ? search.oauth : undefined,
   }),
   head: () => ({
     meta: [
@@ -27,7 +36,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { reason, redirect: redirectTo } = Route.useSearch();
+  const { reason, redirect: redirectTo, oauth } = Route.useSearch();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -77,6 +86,13 @@ function LoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, redirectTo]);
 
+  useEffect(() => {
+    if (oauth === "google" && !isEmbeddedPreview()) {
+      void startGoogleSignIn();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [oauth]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -111,13 +127,32 @@ function LoginPage() {
     }
   }
 
-  async function handleGoogle() {
+  async function startGoogleSignIn() {
     setError(null);
     const { lovable } = await import("@/integrations/lovable/index");
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin + destinationAfterAuth(),
     });
     if (result.error) setError(result.error.message);
+  }
+
+  async function handleGoogle() {
+    setError(null);
+    setInfo(null);
+
+    if (isEmbeddedPreview()) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("oauth", "google");
+      const opened = window.open(url.toString(), "_blank", "noopener,noreferrer");
+      setInfo(
+        opened
+          ? "Google sign-in opened in a new tab so 2FA can complete correctly."
+          : "Open this preview in a new browser tab, then use Continue with Google.",
+      );
+      return;
+    }
+
+    await startGoogleSignIn();
   }
 
   async function handleResetPassword() {
@@ -221,9 +256,7 @@ function LoginPage() {
           onClick={() => setMode(mode === "login" ? "signup" : "login")}
           className="mt-4 w-full text-center text-sm text-muted-foreground hover:underline"
         >
-          {mode === "login"
-            ? "No account? Create one"
-            : "Already have an account? Sign in"}
+          {mode === "login" ? "No account? Create one" : "Already have an account? Sign in"}
         </button>
       </div>
     </main>
