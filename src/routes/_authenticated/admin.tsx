@@ -88,9 +88,17 @@ function AdminPage() {
   });
 
   const notesQ = useQuery({
-    queryKey: ["admin", "notes", statusFilter, search],
+    queryKey: ["admin", "notes", statusFilter, search, fromDate, toDate],
     queryFn: () =>
-      fetchNotes({ data: { status: statusFilter, search, limit: 200 } }),
+      fetchNotes({
+        data: {
+          status: statusFilter,
+          search,
+          fromDate: fromDate || undefined,
+          toDate: toDate || undefined,
+          limit: 200,
+        },
+      }),
     enabled: isAdmin,
   });
 
