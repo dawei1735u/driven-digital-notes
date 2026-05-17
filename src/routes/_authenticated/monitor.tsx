@@ -383,7 +383,12 @@ function MonitorPageInner() {
     };
   }, [notes]);
 
-  const filtered = notes;
+  const filtered = notes.filter((n) => {
+    const d = (n.display_date ?? "").slice(0, 10);
+    if (fromDate && d < fromDate) return false;
+    if (toDate && d > toDate) return false;
+    return true;
+  });
 
   const positioned = autoLayout(filtered, noteSize, boardWidth);
   const boardHeight = Math.max(
