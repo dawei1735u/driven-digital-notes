@@ -6,6 +6,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.18.0] — 2026-05-19 — ES → EN translation on /monitor + camera error toasts
+
+### Added
+- **Translate ES → EN** button in the expanded sticky overlay on `/monitor`. Sends the note image to Gemini 2.5 Flash via the Lovable AI Gateway and renders a side panel with the verbatim Spanish original and a clean English translation.
+- New `translateNote` server function (`src/lib/translate.functions.ts`) — calls `google/gemini-2.5-flash` with a strict-JSON system prompt (`{ original, translation }`); 429 / 402 errors are surfaced as user-facing toasts instead of throwing into the console.
+- Root-level `sonner` toaster (`src/routes/__root.tsx`, `<Toaster richColors closeButton />`) so any error in the camera or translation flows becomes a clear, dismissable notification.
+- Camera error toasts on `/ipad`: if `cameraInputRef.current` is null, the browser blocks `input.click()`, the picker never resolves within an 8s `photoTimerRef` timeout, or pasting the captured photo into `HandwritingCanvas` fails, the user gets a red toast with a **Retry** action that re-invokes `openCamera()`.
+
+### How it was built
+- Added `useServerFn(translateNote)` in `monitor.tsx` with `translation` / `translating` local state and a `runTranslate` handler that calls `translateNote({ data: { imageUrl: n.image_url } })` and `toast.error(...)` on failure with a Retry action.
+- Wrote `translate.functions.ts` using `createServerFn({ method: "POST" })` + `inputValidator` (Zod) + a handler that posts to the Lovable AI Gateway with `messages: [{ role: "system", ... }, { role: "user", content: [{ type: "image_url", image_url: { url } }] }]` and parses the JSON response.
+- Hardened `openCamera()` / `onCameraFile()` in `ipad.tsx` with try/catch, an 8s setTimeout cleared inside `onCameraFile`, and `toast.error(..., { action: { label: "Retry", onClick: openCamera } })`.
+- Mounted `<Toaster />` once at the root so every route can call `toast.error()` without extra wiring.
+
+### Files touched
+- `src/lib/translate.functions.ts` — new server function (Gemini 2.5 Flash, strict-JSON output).
+- `src/routes/_authenticated/monitor.tsx` — Translate ES → EN button, side panel, `useServerFn` wiring, error toasts.
+- `src/routes/_authenticated/ipad.tsx` — camera error handling, `photoTimerRef` 8s watchdog, retry toasts.
+- `src/routes/__root.tsx` — mounted `<Toaster richColors closeButton />` from `sonner`.
+
+---
+
 ## [1.17.0] — 2026-05-19 — Expand-to-read overlay, pinch/double-tap zoom, and in-note photos
 
 ### Added
