@@ -29,7 +29,7 @@ export const transcribeAudio = createServerFn({ method: "POST" })
           {
             role: "system",
             content:
-              "You transcribe short voice notes for a doorman task board. Return ONLY the spoken words as clean, punctuated plain text. No prefaces, no quotes, no commentary. If the audio is silent or unintelligible, return an empty string.",
+              "You transcribe short voice notes for a doorman task board. Return ONLY the spoken words as clean, punctuated plain text in the SAME LANGUAGE that was spoken — never translate. If the speaker uses Spanish, return Spanish. If they mix languages, preserve each phrase in its original language. No prefaces, no quotes, no commentary, no language labels. If the audio is silent or unintelligible, return an empty string.",
           },
           {
             role: "user",
