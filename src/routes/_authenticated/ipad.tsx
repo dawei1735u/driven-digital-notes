@@ -272,17 +272,24 @@ function IpadPage() {
   };
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [photoActive, setPhotoActive] = useState(false);
   const openCamera = () => {
     setPasteError(null);
-    if (mode !== "handwrite") {
-      setPasteError("Switch to Handwrite mode to add a photo to the note.");
-      return;
-    }
+    // Switch into Handwrite mode synchronously so the photo can be pasted into
+    // the canvas. The hidden <input> is rendered alongside the toolbar in all
+    // modes, so .click() still fires inside the same user gesture.
+    if (mode !== "handwrite") setMode("handwrite");
+    setPhotoActive(true);
+    // Clear the visual "armed" state after the picker has had a chance to
+    // open — onCameraFile / focusback will also clear it, this is just a
+    // safety net for users who cancel out of the camera sheet.
+    window.setTimeout(() => setPhotoActive(false), 6000);
     cameraInputRef.current?.click();
   };
   const onCameraFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow re-picking the same file
+    setPhotoActive(false);
     if (!file || !canvasRef.current) return;
     setPasteError(null);
     try {
