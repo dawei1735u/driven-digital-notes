@@ -609,6 +609,22 @@ function IpadPage() {
               >
                 <Mic className="h-4 w-4" /> Voice
               </button>
+              <button
+                onClick={openCamera}
+                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-accent"
+                title="Take a photo and add it to the note (Handwrite mode)"
+              >
+                <Camera className="h-4 w-4" /> Photo
+              </button>
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={onCameraFile}
+                className="hidden"
+                aria-hidden="true"
+              />
             </div>
           )}
           <div>
