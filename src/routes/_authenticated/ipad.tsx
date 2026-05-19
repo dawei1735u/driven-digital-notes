@@ -271,6 +271,32 @@ function IpadPage() {
     }
   };
 
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const openCamera = () => {
+    setPasteError(null);
+    if (mode !== "handwrite") {
+      setPasteError("Switch to Handwrite mode to add a photo to the note.");
+      return;
+    }
+    cameraInputRef.current?.click();
+  };
+  const onCameraFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
+    if (!file || !canvasRef.current) return;
+    setPasteError(null);
+    try {
+      const url = URL.createObjectURL(file);
+      await canvasRef.current.pasteImage(url);
+      URL.revokeObjectURL(url);
+      flashPasteOk();
+    } catch (err) {
+      console.error(err);
+      setPasteError(err instanceof Error ? err.message : "Failed to add photo.");
+    }
+  };
+
+
   const isEdit = !!editId;
 
   const selectTool = (t: "pen" | "eraser") => {
