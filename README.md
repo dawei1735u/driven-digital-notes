@@ -29,6 +29,11 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 
 ## Feature highlights
 
+### ES → EN translation + camera error toasts (new in 1.18.0)
+- **Translate ES → EN** button on the expanded sticky overlay (`/monitor`). Sends the note PNG to Gemini 2.5 Flash via the Lovable AI Gateway (`src/lib/translate.functions.ts`, `translateNote` server fn) and renders a side panel with the verbatim Spanish original and a clean English translation. Rate-limit (429) and credit (402) errors surface as `sonner` toasts.
+- **Root-level toaster** mounted in `src/routes/__root.tsx` (`<Toaster richColors closeButton />`) so every route can `toast.error(...)` instead of failing silently.
+- **Camera error toasts** on `/ipad`: if the hidden `<input type="file" capture>` is missing, the browser blocks `input.click()`, the picker doesn't resolve within an 8s `photoTimerRef` watchdog, or pasting into `HandwritingCanvas` fails — the user gets a red toast with a **Retry** action that re-opens the camera.
+
 ### Expand-to-read, pinch/double-tap zoom, in-note photos (new in 1.17.0)
 - **Tap any sticky on `/monitor`** to open a full-screen overlay that scales the PNG up to the viewport — handwriting is readable without resizing the card.
 - **Pinch / wheel / double-tap zoom** on the overlay (`src/components/ZoomableImage.tsx`). Two-finger pinch on touch, scroll-wheel on desktop, double-tap to toggle 1× ↔ 2.5×. One-finger pan while zoomed.
