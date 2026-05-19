@@ -618,10 +618,17 @@ function IpadPage() {
               </button>
               <button
                 onClick={openCamera}
-                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-accent"
-                title="Take a photo and add it to the note (Handwrite mode)"
+                className={
+                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition active:scale-95 " +
+                  (photoActive
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-accent")
+                }
+                aria-pressed={photoActive}
+                title="Take a photo and add it to the note"
               >
-                <Camera className="h-4 w-4" /> Photo
+                <Camera className="h-4 w-4" />{" "}
+                {photoActive ? "Opening camera…" : "Photo"}
               </button>
               <input
                 ref={cameraInputRef}
