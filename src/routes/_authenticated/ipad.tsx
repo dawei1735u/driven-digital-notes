@@ -609,6 +609,22 @@ function IpadPage() {
               >
                 <Mic className="h-4 w-4" /> Voice
               </button>
+              <button
+                onClick={openCamera}
+                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-accent"
+                title="Take a photo and add it to the note (Handwrite mode)"
+              >
+                <Camera className="h-4 w-4" /> Photo
+              </button>
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={onCameraFile}
+                className="hidden"
+                aria-hidden="true"
+              />
             </div>
           )}
           <div>
@@ -828,22 +844,8 @@ function IpadPage() {
               >
                 <ClipboardPaste className="h-5 w-5" /> Paste
               </button>
-              <button
-                onClick={openCamera}
-                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
-                title="Take a photo and add it to the note"
-              >
-                <Camera className="h-5 w-5" /> Photo
-              </button>
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={onCameraFile}
-                className="hidden"
-                aria-hidden="true"
-              />
+
+
 
               <div className="inline-flex items-stretch gap-2 rounded-xl border border-input bg-card px-2 py-1 shadow-sm">
                 <div className="inline-flex items-center gap-2 pl-1 text-muted-foreground">
