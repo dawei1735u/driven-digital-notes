@@ -5,7 +5,7 @@ import {
   type HandwritingCanvasHandle,
 } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste, Youtube, Type, PenLine, Mic } from "lucide-react";
+import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste, Youtube, Type, PenLine, Mic, Camera } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
 import { transcribeAudio } from "@/lib/voice.functions";
@@ -270,6 +270,32 @@ function IpadPage() {
       );
     }
   };
+
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const openCamera = () => {
+    setPasteError(null);
+    if (mode !== "handwrite") {
+      setPasteError("Switch to Handwrite mode to add a photo to the note.");
+      return;
+    }
+    cameraInputRef.current?.click();
+  };
+  const onCameraFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
+    if (!file || !canvasRef.current) return;
+    setPasteError(null);
+    try {
+      const url = URL.createObjectURL(file);
+      await canvasRef.current.pasteImage(url);
+      URL.revokeObjectURL(url);
+      flashPasteOk();
+    } catch (err) {
+      console.error(err);
+      setPasteError(err instanceof Error ? err.message : "Failed to add photo.");
+    }
+  };
+
 
   const isEdit = !!editId;
 
@@ -802,6 +828,23 @@ function IpadPage() {
               >
                 <ClipboardPaste className="h-5 w-5" /> Paste
               </button>
+              <button
+                onClick={openCamera}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+                title="Take a photo and add it to the note"
+              >
+                <Camera className="h-5 w-5" /> Photo
+              </button>
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={onCameraFile}
+                className="hidden"
+                aria-hidden="true"
+              />
+
               <div className="inline-flex items-stretch gap-2 rounded-xl border border-input bg-card px-2 py-1 shadow-sm">
                 <div className="inline-flex items-center gap-2 pl-1 text-muted-foreground">
                   <Youtube className="h-5 w-5" />
