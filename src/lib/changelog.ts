@@ -8,6 +8,31 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.18.0",
+    date: "2026-05-19",
+    title: "ES → EN translation on /monitor + camera error toasts",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "**Translate ES → EN** button in the expanded sticky overlay on `/monitor`. Sends the note image to Gemini 2.5 Flash via the Lovable AI Gateway and renders a side panel with the verbatim Spanish original and a clean English translation.",
+          "New `translateNote` server function (`src/lib/translate.functions.ts`) — calls `google/gemini-2.5-flash` with a strict-JSON system prompt (`{ original, translation }`) and gracefully surfaces 429 / 402 errors.",
+          "Toast notifications (`sonner`) mounted at the root (`src/routes/__root.tsx`) with `richColors` + `closeButton`, so any error in the camera or translation flow becomes a clear, dismissable notification instead of a silent failure.",
+          "Camera error toasts on `/ipad`: if the hidden file input is missing, the browser blocks the picker, the picker never resolves within 8s, or pasting the captured photo into the canvas fails, the user sees a red toast with a **Retry** action that re-opens the camera.",
+        ],
+      },
+      {
+        heading: "Files touched",
+        items: [
+          "src/lib/translate.functions.ts — new `translateNote` server function (Lovable AI Gateway, Gemini 2.5 Flash).",
+          "src/routes/_authenticated/monitor.tsx — Translate button, translation side panel, `useServerFn` wiring, error toasts.",
+          "src/routes/_authenticated/ipad.tsx — `openCamera` / `onCameraFile` error handling, 8s `photoTimerRef` timeout, retry toasts.",
+          "src/routes/__root.tsx — mounted `<Toaster richColors closeButton />` from `sonner`.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.17.0",
     date: "2026-05-19",
     title: "Expand-to-read overlay, pinch/double-tap zoom, and in-note photos",
