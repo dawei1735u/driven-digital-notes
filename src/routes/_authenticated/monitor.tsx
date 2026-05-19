@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { NoteCard } from "@/components/NoteCard";
 import { EditNoteDialog } from "@/components/EditNoteDialog";
 import { ZoomableImage } from "@/components/ZoomableImage";
-import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic, LayoutGrid, X } from "lucide-react";
+import { translateNote } from "@/lib/translate.functions";
+import { toast } from "sonner";
+import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic, LayoutGrid, X, Languages, Loader2 } from "lucide-react";
 
 type Note = Tables<"notes">;
 
