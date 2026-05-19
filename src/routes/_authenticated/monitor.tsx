@@ -118,6 +118,14 @@ function MonitorPageInner() {
   const boardRef = useRef<HTMLDivElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [translation, setTranslation] = useState<{ original: string; translation: string } | null>(null);
+  const [translating, setTranslating] = useState(false);
+  const runTranslate = useServerFn(translateNote);
+  useEffect(() => {
+    // Reset translation panel whenever the expanded note changes / closes
+    setTranslation(null);
+    setTranslating(false);
+  }, [expandedId]);
   useEffect(() => {
     if (!expandedId) return;
     const onKey = (e: KeyboardEvent) => {
