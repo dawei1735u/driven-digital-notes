@@ -274,6 +274,7 @@ function IpadPage() {
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [photoActive, setPhotoActive] = useState(false);
+  const photoTimerRef = useRef<number | null>(null);
   const openCamera = () => {
     setPasteError(null);
     // Switch into Handwrite mode synchronously so the photo can be pasted into
@@ -281,13 +282,47 @@ function IpadPage() {
     // modes, so .click() still fires inside the same user gesture.
     if (mode !== "handwrite") setMode("handwrite");
     setPhotoActive(true);
-    // Clear the visual "armed" state after the picker has had a chance to
-    // open — onCameraFile / focusback will also clear it, this is just a
-    // safety net for users who cancel out of the camera sheet.
-    window.setTimeout(() => setPhotoActive(false), 6000);
-    cameraInputRef.current?.click();
+    if (photoTimerRef.current) window.clearTimeout(photoTimerRef.current);
+    const input = cameraInputRef.current;
+    if (!input) {
+      setPhotoActive(false);
+      toast.error("Couldn't open the camera", {
+        description: "The camera control isn't ready yet. Try again.",
+        action: { label: "Retry", onClick: () => openCamera() },
+      });
+      return;
+    }
+    try {
+      input.click();
+    } catch (err) {
+      setPhotoActive(false);
+      toast.error("Couldn't open the camera", {
+        description:
+          err instanceof Error
+            ? err.message
+            : "Your browser blocked the camera picker.",
+        action: { label: "Retry", onClick: () => openCamera() },
+      });
+      return;
+    }
+    // If the picker never opens (permission denied, blocked by browser, no
+    // camera) the input fires neither change nor cancel reliably on iOS. After
+    // a short wait with no file selected, surface a retry toast.
+    photoTimerRef.current = window.setTimeout(() => {
+      setPhotoActive(false);
+      toast.error("Camera didn't open", {
+        description:
+          "Allow camera access in your browser settings, then try again.",
+        action: { label: "Retry", onClick: () => openCamera() },
+        duration: 8000,
+      });
+    }, 8000);
   };
   const onCameraFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (photoTimerRef.current) {
+      window.clearTimeout(photoTimerRef.current);
+      photoTimerRef.current = null;
+    }
     const file = e.target.files?.[0];
     e.target.value = ""; // allow re-picking the same file
     setPhotoActive(false);
@@ -300,7 +335,12 @@ function IpadPage() {
       flashPasteOk();
     } catch (err) {
       console.error(err);
-      setPasteError(err instanceof Error ? err.message : "Failed to add photo.");
+      const msg = err instanceof Error ? err.message : "Failed to add photo.";
+      setPasteError(msg);
+      toast.error("Couldn't add the photo", {
+        description: msg,
+        action: { label: "Retry", onClick: () => openCamera() },
+      });
     }
   };
 
