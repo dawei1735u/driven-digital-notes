@@ -11,6 +11,7 @@ import { summarizeYouTube } from "@/lib/youtube.functions";
 import { transcribeAudio } from "@/lib/voice.functions";
 import { getMyWorkspaceId } from "@/lib/admin.functions";
 import { VoiceRecorder, blobToBase64, type Recording } from "@/components/VoiceRecorder";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
   validateSearch: (s: Record<string, unknown>) => ({
