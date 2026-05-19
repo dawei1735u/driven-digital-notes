@@ -731,31 +731,108 @@ function MonitorPageInner() {
       {expandedId && (() => {
         const n = notes.find((x) => x.id === expandedId);
         if (!n) return null;
+        const onTranslate = async () => {
+          if (translating) return;
+          setTranslating(true);
+          try {
+            const result = await runTranslate({ data: { imageUrl: n.image_url } });
+            if (result.error) {
+              toast.error("Couldn't translate note", { description: result.error });
+              setTranslation(null);
+            } else if (!result.original && !result.translation) {
+              toast.error("Couldn't read the note", {
+                description: "The handwriting wasn't legible enough to transcribe.",
+              });
+            } else {
+              setTranslation({ original: result.original, translation: result.translation });
+            }
+          } catch (err) {
+            toast.error("Translation failed", {
+              description: err instanceof Error ? err.message : "Unknown error",
+              action: { label: "Retry", onClick: () => void onTranslate() },
+            });
+          } finally {
+            setTranslating(false);
+          }
+        };
         return (
           <div
             className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/85 backdrop-blur-sm p-6"
             onClick={() => setExpandedId(null)}
           >
-            <button
-              onClick={() => setExpandedId(null)}
-              className="absolute right-6 top-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
-              aria-label="Close expanded note"
-            >
-              <X className="h-4 w-4" /> Close
-            </button>
+            <div className="absolute right-6 top-6 flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); void onTranslate(); }}
+                disabled={translating}
+                className="inline-flex items-center gap-2 rounded-full border border-amber-300/50 bg-amber-300/20 px-4 py-2 text-sm font-semibold text-amber-100 hover:bg-amber-300/30 disabled:opacity-60"
+                aria-label="Translate note from Spanish to English"
+              >
+                {translating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+                {translating ? "Translating…" : translation ? "Re-translate" : "Translate ES → EN"}
+              </button>
+              <button
+                onClick={() => setExpandedId(null)}
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
+                aria-label="Close expanded note"
+              >
+                <X className="h-4 w-4" /> Close
+              </button>
+            </div>
             <div
-              className="relative rounded-lg bg-white shadow-2xl"
-              style={{ width: "min(92vw, 1400px)", height: "min(90vh, 1000px)" }}
+              className="flex gap-4"
+              style={{ width: "min(96vw, 1600px)", height: "min(90vh, 1000px)" }}
               onClick={(e) => e.stopPropagation()}
             >
-              <ZoomableImage
-                src={n.image_url}
-                alt={`Handwritten note by ${n.written_by}`}
-                className="h-full w-full rounded-lg"
-              />
-              <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white">
-                Pinch, scroll, or double-tap to zoom
+              <div
+                className="relative flex-1 rounded-lg bg-white shadow-2xl"
+              >
+                <ZoomableImage
+                  src={n.image_url}
+                  alt={`Handwritten note by ${n.written_by}`}
+                  className="h-full w-full rounded-lg"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white">
+                  Pinch, scroll, or double-tap to zoom
+                </div>
               </div>
+              {translation && (
+                <aside
+                  className="flex h-full w-[360px] shrink-0 flex-col gap-4 overflow-y-auto rounded-lg border border-white/15 bg-neutral-900/95 p-5 text-white shadow-2xl"
+                >
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-amber-300">
+                      Translation
+                    </h2>
+                    <button
+                      onClick={() => setTranslation(null)}
+                      className="rounded p-1 text-white/60 hover:bg-white/10 hover:text-white"
+                      aria-label="Hide translation"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {translation.original && (
+                    <div>
+                      <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-white/50">
+                        Original (Spanish)
+                      </h3>
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/90">
+                        {translation.original}
+                      </p>
+                    </div>
+                  )}
+                  {translation.translation && (
+                    <div>
+                      <h3 className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-white/50">
+                        English
+                      </h3>
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-white">
+                        {translation.translation}
+                      </p>
+                    </div>
+                  )}
+                </aside>
+              )}
             </div>
           </div>
         );
