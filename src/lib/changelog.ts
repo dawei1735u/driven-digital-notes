@@ -8,6 +8,32 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.17.0",
+    date: "2026-05-19",
+    title: "Expand-to-read overlay, pinch/double-tap zoom, and in-note photos",
+    sections: [
+      {
+        heading: "Added",
+        items: [
+          "**Expand any sticky to a readable size.** Tapping a note on `/monitor` opens a full-screen overlay that scales the PNG up to the viewport so handwriting is legible without resizing the card.",
+          "**Pinch-to-zoom and double-tap zoom** on the expanded overlay (`src/components/ZoomableImage.tsx`) — two-finger pinch on touch, scroll-wheel zoom on desktop, double-tap to toggle between 1× and 2.5×. Pan with one finger while zoomed.",
+          "**Reset · Nx** button in the overlay — snaps zoom back to 1× and shows the current zoom level (disabled at 1×). Uses `Minimize2` icon.",
+          "**Fit** button in the overlay — scales the image to fully fill the viewport edge-to-edge (eliminates `object-contain` letterboxing) and re-centers it. Uses `Maximize` icon.",
+          "**Photo** button in the `/ipad` mode toolbar (next to Voice). Opens the device camera via a hidden `<input type=\"file\" accept=\"image/*\" capture=\"environment\">`, then pastes the captured image into the active sticky below the existing ink via `HandwritingCanvas.pasteImage(url)`. Requires Handwrite mode.",
+        ],
+      },
+      {
+        heading: "Files touched",
+        items: [
+          "src/components/ZoomableImage.tsx — new component: pinch/wheel/double-tap zoom, pan, `resetZoom()`, `fitToViewport()`, Reset/Fit buttons.",
+          "src/components/NoteCard.tsx — click handler opens the expand overlay.",
+          "src/routes/_authenticated/monitor.tsx — expanded-sticky overlay wired to `ZoomableImage`.",
+          "src/routes/_authenticated/ipad.tsx — `Photo` button + hidden camera input next to the Voice mode button; `openCamera()` / `onCameraFile()` handlers.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.16.0",
     date: "2026-05-17",
     title: "Click-to-front sticky notes on /monitor",

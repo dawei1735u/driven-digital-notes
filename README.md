@@ -29,6 +29,13 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 
 ## Feature highlights
 
+### Expand-to-read, pinch/double-tap zoom, in-note photos (new in 1.17.0)
+- **Tap any sticky on `/monitor`** to open a full-screen overlay that scales the PNG up to the viewport — handwriting is readable without resizing the card.
+- **Pinch / wheel / double-tap zoom** on the overlay (`src/components/ZoomableImage.tsx`). Two-finger pinch on touch, scroll-wheel on desktop, double-tap to toggle 1× ↔ 2.5×. One-finger pan while zoomed.
+- **Reset · Nx** button — snaps zoom back to 1× and displays the current zoom level (disabled at 1×).
+- **Fit** button — scales the image edge-to-edge to fully fill the viewport (eliminates `object-contain` letterboxing) and re-centers it.
+- **Photo** button on the `/ipad` mode toolbar (right of Voice) — opens the device camera via a hidden `<input type="file" accept="image/*" capture="environment">` and pastes the captured image into the active sticky via `HandwritingCanvas.pasteImage(url)`. Requires Handwrite mode.
+
 ### Click-to-front sticky notes (new in 1.16.0)
 - Tapping or dragging any sticky on `/monitor` now raises it above its neighbors so the corner resize handle is reachable and overlapping notes can be widened/read without manually shuffling other stickies.
 - Implemented in `src/routes/_authenticated/monitor.tsx` via a `zOrder: Record<string, number>` state + `zCounterRef` (starts at 10) and a `bringToFront(id)` `useCallback`. Each note wrapper has `onPointerDown={() => bringToFront(n.id)}`; the wrapper's inline `zIndex` resolves to `9999` while actively dragging (`dragRef.current?.id === n.id`), otherwise `zOrder[n.id] ?? 1`.
@@ -210,6 +217,7 @@ insert into storage.buckets (id, name, public) values ('note-audio',  'note-audi
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.17.0** — Expand-to-read overlay on `/monitor` with pinch/wheel/double-tap zoom, Reset and Fit buttons (`ZoomableImage`); new **Photo** button on `/ipad` (right of Voice) that captures from the device camera and pastes into the active sticky.
 - **1.16.0** — `/monitor`: click or drag a sticky to bring it to the foreground — per-note z-index tracking via `zOrder` state + `bringToFront(id)`, so overlapping notes can be reached and resized.
 - **1.15.1** — Preview-iframe login hardening: Google sign-in opens in a new top-level tab from the Lovable preview iframe so OAuth state + 2FA round-trip; friendlier "invalid credentials" copy pointing to Google + 2FA.
 - **1.15.0** — `/monitor`: **Tile notes** button arranges every sticky into a clean grid; **Snap to grid** toggle (24px) persisted in `localStorage`.
