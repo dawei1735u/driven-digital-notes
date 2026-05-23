@@ -737,6 +737,10 @@ function MonitorPageInner() {
           if (!editingId) return;
           onLocalUpdate(editingId, patch);
         }}
+        onDelete={(id) => {
+          setEditingId(null);
+          onDelete(id);
+        }}
       />
       {expandedId && (() => {
         const n = notes.find((x) => x.id === expandedId);
