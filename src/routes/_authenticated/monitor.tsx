@@ -22,6 +22,7 @@ function pathFromImageUrl(image_url: string | null | undefined): string | null {
 }
 
 export const Route = createFileRoute("/_authenticated/monitor")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Tasks" },
