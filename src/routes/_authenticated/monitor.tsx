@@ -722,6 +722,7 @@ function MonitorPageInner() {
                   onEdit={(id) => setEditingId(id)}
                   onExpand={(id) => setExpandedId(id)}
                   onResizeStart={onResizeStart}
+                  onDelete={onDelete}
                 />
               </div>
             ))}
