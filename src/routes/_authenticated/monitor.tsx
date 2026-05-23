@@ -300,6 +300,15 @@ function MonitorPageInner() {
     }
   };
 
+  const onDelete = useCallback(async (id: string) => {
+    setNotes((arr) => arr.filter((n) => n.id !== id));
+    const { error } = await supabase.from("notes").delete().eq("id", id);
+    if (error) {
+      console.error(error);
+      toast.error("Failed to delete note", { description: error.message });
+    }
+  }, []);
+
   const onLocalUpdate = useCallback((id: string, patch: Partial<Note>) => {
     setNotes((arr) => arr.map((n) => (n.id === id ? { ...n, ...patch } : n)));
   }, []);
