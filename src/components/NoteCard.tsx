@@ -1,7 +1,17 @@
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil, PenLine, Undo2, Play, Pause, Volume2, Maximize2 } from "lucide-react";
+import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil, PenLine, Undo2, Play, Pause, Volume2, Maximize2, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Strike = { x1: number; y1: number; x2: number; y2: number };
 
