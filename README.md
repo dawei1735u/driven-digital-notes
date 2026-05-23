@@ -29,7 +29,14 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 
 ## Feature highlights
 
+### Delete notes + edit-mode toggle restore (new in 1.19.0)
+- **Delete from the lobby board** — every `NoteCard` on `/monitor` has a trash icon in its header. Tapping it opens an `AlertDialog` confirmation ("This will permanently delete the note and its image. This action cannot be undone.") and, on confirm, deletes the row from Supabase and prunes it from local state.
+- **Delete from the edit dialog** — `EditNoteDialog` adds a destructive **Delete** button in the footer (next to **Redraw on iPad**) guarded by the same confirmation. Lets a doorman clean up while already inspecting a note.
+- **New RLS policy `notes_delete_workspace`** — `using (is_user_allowed(auth.uid()) and workspace_id is not distinct from get_my_workspace_id())`. DELETE was admin-only before this release, which forced every cleanup through `/admin` bulk actions.
+- **Mode toggle restored in edit mode** — opening `/ipad?edit=<id>` now shows the Handwrite / Type / Voice / Photo switcher (the `!isEdit &&` guard around the JSX was removed). The 1.14.0 safety rule still applies: initial mode is forced to `handwrite` so the existing PNG reloads into `HandwritingCanvas` via `loadFromUrl`, but doormen can now switch modes mid-edit to attach a Photo or retype.
+
 ### ES → EN translation + camera error toasts (new in 1.18.0)
+
 - **Translate ES → EN** button on the expanded sticky overlay (`/monitor`). Sends the note PNG to Gemini 2.5 Flash via the Lovable AI Gateway (`src/lib/translate.functions.ts`, `translateNote` server fn) and renders a side panel with the verbatim Spanish original and a clean English translation. Rate-limit (429) and credit (402) errors surface as `sonner` toasts.
 - **Root-level toaster** mounted in `src/routes/__root.tsx` (`<Toaster richColors closeButton />`) so every route can `toast.error(...)` instead of failing silently.
 - **Camera error toasts** on `/ipad`: if the hidden `<input type="file" capture>` is missing, the browser blocks `input.click()`, the picker doesn't resolve within an 8s `photoTimerRef` watchdog, or pasting into `HandwritingCanvas` fails — the user gets a red toast with a **Retry** action that re-opens the camera.
@@ -222,6 +229,7 @@ insert into storage.buckets (id, name, public) values ('note-audio',  'note-audi
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.19.0** — Delete notes from `/monitor` (trash icon on each `NoteCard`) and from `EditNoteDialog`, both gated by an `AlertDialog` confirmation; new `notes_delete_workspace` RLS policy lets allowlisted users delete inside their workspace; mode toggle (Handwrite / Type / Voice / Photo) is now visible in `/ipad?edit=<id>` so notes can be re-attached or retyped without recreating.
 - **1.18.0** — `/monitor`: **Translate ES → EN** in the expanded sticky overlay via Gemini 2.5 Flash (`translateNote` server fn) with a side-panel for original + translation; root-level `sonner` toaster; camera error toasts with **Retry** on `/ipad` (covers missing input ref, blocked `input.click()`, 8s no-pick watchdog, and paste failures).
 - **1.17.0** — Expand-to-read overlay on `/monitor` with pinch/wheel/double-tap zoom, Reset and Fit buttons (`ZoomableImage`); new **Photo** button on `/ipad` (right of Voice) that captures from the device camera and pastes into the active sticky.
 - **1.16.0** — `/monitor`: click or drag a sticky to bring it to the foreground — per-note z-index tracking via `zOrder` state + `bringToFront(id)`, so overlapping notes can be reached and resized.

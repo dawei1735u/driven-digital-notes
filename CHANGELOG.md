@@ -6,6 +6,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.19.0] — 2026-05-23 — Delete notes + restore mode toggle in edit
+
+### Added
+- **Delete a note from the lobby board.** Each `NoteCard` on `/monitor` now has a trash icon in its header that opens a confirmation `AlertDialog` ("This will permanently delete the note and its image. This action cannot be undone."). Confirming removes the row from Supabase and the card from the board in one motion.
+- **Delete button in the edit dialog.** `EditNoteDialog` now exposes a red **Delete** button in the footer next to **Redraw on iPad**, gated by the same confirmation dialog. Useful when a doorman is already inspecting a note and decides it's stale.
+- **`notes_delete_workspace` RLS policy** — allowlisted users can delete notes inside their own workspace. Previously DELETE was admin-only, which forced every cleanup through `/admin` bulk actions.
+
+### Fixed
+- **Mode toggle now appears when redrawing a note.** Opening `/ipad?edit=<id>` previously hid the Handwrite / Type / Voice / Photo switcher (the `!isEdit &&` guard short-circuited the JSX). It's now visible in edit mode too, so a doorman re-opening a note can switch to Type or attach a Photo without having to discard and recreate the note. The edit-mode safety rule from 1.14.0 — initial mode defaults to `handwrite` so the existing PNG always reloads — is still in force.
+
+### Files touched
+- `supabase/migrations/20260523055429_*.sql` — new `notes_delete_workspace` policy: `using (is_user_allowed(auth.uid()) and workspace_id is not distinct from get_my_workspace_id())`.
+- `src/components/NoteCard.tsx` — trash icon in header + `AlertDialog` confirmation, calls `onDelete(note.id)`.
+- `src/components/EditNoteDialog.tsx` — destructive **Delete** button in the footer wired to the same confirmation flow.
+- `src/routes/_authenticated/monitor.tsx` — `onDelete` handler: `await supabase.from("notes").delete().eq("id", id)` then prunes the note from local state; toast on failure.
+- `src/routes/_authenticated/ipad.tsx` — removed the `!isEdit &&` guard around the mode toggle so all four modes render in edit mode.
+
+---
+
 ## [1.18.0] — 2026-05-19 — ES → EN translation on /monitor + camera error toasts
 
 ### Added
