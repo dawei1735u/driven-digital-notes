@@ -9,8 +9,19 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Link } from "@tanstack/react-router";
-import { PenLine } from "lucide-react";
+import { PenLine, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 type Note = Tables<"notes">;
 
@@ -19,6 +30,7 @@ export function EditNoteDialog({
   open,
   onOpenChange,
   onSaved,
+  onDelete,
 }: {
   note: Note | null;
   open: boolean;
