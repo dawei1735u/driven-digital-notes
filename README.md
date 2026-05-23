@@ -229,6 +229,7 @@ insert into storage.buckets (id, name, public) values ('note-audio',  'note-audi
 
 See `CHANGELOG.md` or the in-app `/changelog` (admin-only). Latest releases:
 
+- **1.19.0** — Delete notes from `/monitor` (trash icon on each `NoteCard`) and from `EditNoteDialog`, both gated by an `AlertDialog` confirmation; new `notes_delete_workspace` RLS policy lets allowlisted users delete inside their workspace; mode toggle (Handwrite / Type / Voice / Photo) is now visible in `/ipad?edit=<id>` so notes can be re-attached or retyped without recreating.
 - **1.18.0** — `/monitor`: **Translate ES → EN** in the expanded sticky overlay via Gemini 2.5 Flash (`translateNote` server fn) with a side-panel for original + translation; root-level `sonner` toaster; camera error toasts with **Retry** on `/ipad` (covers missing input ref, blocked `input.click()`, 8s no-pick watchdog, and paste failures).
 - **1.17.0** — Expand-to-read overlay on `/monitor` with pinch/wheel/double-tap zoom, Reset and Fit buttons (`ZoomableImage`); new **Photo** button on `/ipad` (right of Voice) that captures from the device camera and pastes into the active sticky.
 - **1.16.0** — `/monitor`: click or drag a sticky to bring it to the foreground — per-note z-index tracking via `zOrder` state + `bringToFront(id)`, so overlapping notes can be reached and resized.
