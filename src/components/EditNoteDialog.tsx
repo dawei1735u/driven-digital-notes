@@ -162,6 +162,28 @@ export function EditNoteDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this note?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently remove the note from the board. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              onDelete?.(note.id);
+              onOpenChange(false);
+            }}
+            className="bg-red-600 text-white hover:bg-red-700"
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
