@@ -619,7 +619,7 @@ function IpadPage() {
         </div>
 
         <div>
-          {!isEdit && (
+          {(
             <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
               <button
                 onClick={() => setMode("handwrite")}
