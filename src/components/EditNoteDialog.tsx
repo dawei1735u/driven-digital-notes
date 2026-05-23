@@ -36,6 +36,7 @@ export function EditNoteDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSaved?: (patch: Partial<Note>) => void;
+  onDelete?: (id: string) => void;
 }) {
   const [writtenBy, setWrittenBy] = useState("");
   const [displayDate, setDisplayDate] = useState("");
