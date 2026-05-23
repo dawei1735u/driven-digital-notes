@@ -185,6 +185,7 @@ export function EditNoteDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    </>
   );
 }
 
