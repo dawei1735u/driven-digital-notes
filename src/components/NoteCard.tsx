@@ -63,6 +63,7 @@ export function NoteCard({
   onEdit,
   onResizeStart,
   onExpand,
+  onDelete,
 }: {
   note: Note;
   width: number;
@@ -72,12 +73,14 @@ export function NoteCard({
   onEdit?: (id: string) => void;
   onResizeStart?: (id: string, e: React.PointerEvent) => void;
   onExpand?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const [strikeMode, setStrikeMode] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const strikes: Strike[] = Array.isArray((note as unknown as { strikes?: Strike[] }).strikes)
     ? ((note as unknown as { strikes: Strike[] }).strikes)
