@@ -14,6 +14,7 @@ import { VoiceRecorder, blobToBase64, type Recording } from "@/components/VoiceR
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/ipad")({
+  ssr: false,
   validateSearch: (s: Record<string, unknown>) => ({
     edit: typeof s.edit === "string" ? s.edit : undefined,
     mode:
