@@ -43,6 +43,7 @@ export function EditNoteDialog({
   const [status, setStatus] = useState<"open" | "resolved">("open");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (!note) return;
