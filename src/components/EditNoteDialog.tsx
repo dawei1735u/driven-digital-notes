@@ -126,14 +126,24 @@ export function EditNoteDialog({
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
-          <Link
-            to="/ipad"
-            search={{ edit: note.id }}
-            className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-            onClick={() => onOpenChange(false)}
-          >
-            <PenLine className="h-4 w-4" /> Redraw on iPad
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              to="/ipad"
+              search={{ edit: note.id }}
+              className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+              onClick={() => onOpenChange(false)}
+            >
+              <PenLine className="h-4 w-4" /> Redraw on iPad
+            </Link>
+            {onDelete && (
+              <button
+                onClick={() => setDeleteOpen(true)}
+                className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+              >
+                <Trash2 className="h-4 w-4" /> Delete
+              </button>
+            )}
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => onOpenChange(false)}
