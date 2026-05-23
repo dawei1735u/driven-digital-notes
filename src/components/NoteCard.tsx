@@ -1,7 +1,17 @@
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil, PenLine, Undo2, Play, Pause, Volume2, Maximize2 } from "lucide-react";
+import { Check, Clock, Calendar as CalIcon, GripVertical, RotateCcw, Pencil, PenLine, Undo2, Play, Pause, Volume2, Maximize2, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Strike = { x1: number; y1: number; x2: number; y2: number };
 
@@ -53,6 +63,7 @@ export function NoteCard({
   onEdit,
   onResizeStart,
   onExpand,
+  onDelete,
 }: {
   note: Note;
   width: number;
@@ -62,12 +73,14 @@ export function NoteCard({
   onEdit?: (id: string) => void;
   onResizeStart?: (id: string, e: React.PointerEvent) => void;
   onExpand?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const [strikeMode, setStrikeMode] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const strikes: Strike[] = Array.isArray((note as unknown as { strikes?: Strike[] }).strikes)
     ? ((note as unknown as { strikes: Strike[] }).strikes)
@@ -250,6 +263,16 @@ export function NoteCard({
             <Maximize2 className="h-3.5 w-3.5" />
           </button>
         )}
+        {onDelete && (
+          <button
+            onClick={() => setDeleteOpen(true)}
+            className="inline-flex items-center gap-1 rounded p-1 opacity-60 hover:bg-red-600/10 hover:text-red-600 hover:opacity-100"
+            aria-label="Delete note"
+            title="Delete note"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
         <Popover open={dateOpen} onOpenChange={setDateOpen}>
           <PopoverTrigger asChild>
             <button
@@ -398,6 +421,25 @@ export function NoteCard({
           <CornerResizeIcon className="h-3 w-3" />
         </button>
       )}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this note?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the note from the board. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onDelete?.(note.id)}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

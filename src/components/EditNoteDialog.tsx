@@ -9,8 +9,19 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Link } from "@tanstack/react-router";
-import { PenLine } from "lucide-react";
+import { PenLine, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 type Note = Tables<"notes">;
 
@@ -19,17 +30,20 @@ export function EditNoteDialog({
   open,
   onOpenChange,
   onSaved,
+  onDelete,
 }: {
   note: Note | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSaved?: (patch: Partial<Note>) => void;
+  onDelete?: (id: string) => void;
 }) {
   const [writtenBy, setWrittenBy] = useState("");
   const [displayDate, setDisplayDate] = useState("");
   const [status, setStatus] = useState<"open" | "resolved">("open");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (!note) return;
@@ -63,6 +77,7 @@ export function EditNoteDialog({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -112,14 +127,24 @@ export function EditNoteDialog({
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
-          <Link
-            to="/ipad"
-            search={{ edit: note.id }}
-            className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
-            onClick={() => onOpenChange(false)}
-          >
-            <PenLine className="h-4 w-4" /> Redraw on iPad
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              to="/ipad"
+              search={{ edit: note.id }}
+              className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+              onClick={() => onOpenChange(false)}
+            >
+              <PenLine className="h-4 w-4" /> Redraw on iPad
+            </Link>
+            {onDelete && (
+              <button
+                onClick={() => setDeleteOpen(true)}
+                className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+              >
+                <Trash2 className="h-4 w-4" /> Delete
+              </button>
+            )}
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => onOpenChange(false)}
@@ -138,6 +163,29 @@ export function EditNoteDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this note?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently remove the note from the board. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              onDelete?.(note.id);
+              onOpenChange(false);
+            }}
+            className="bg-red-600 text-white hover:bg-red-700"
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
 
