@@ -29,7 +29,13 @@ function assertSafeHttpImageUrl(rawUrl: string) {
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer) {
-  return Buffer.from(buffer).toString("base64");
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 8192;
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
 }
 
 export const fetchClipboardImage = createServerFn({ method: "POST" })
