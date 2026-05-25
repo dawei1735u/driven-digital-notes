@@ -40,9 +40,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
 
 export const fetchClipboardImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ url: z.string().url().max(2048) }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ url: z.string().url().max(2048) }).parse(input))
   .handler(async ({ data }) => {
     const safeUrl = assertSafeHttpImageUrl(data.url);
     const controller = new AbortController();
