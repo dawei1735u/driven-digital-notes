@@ -199,6 +199,50 @@ function IpadPage() {
     }
   };
 
+  // Try to extract an image URL from an HTML clipboard payload.
+  const extractImageUrlFromHtml = (html: string): string | null => {
+    try {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const img = doc.querySelector("img");
+      const src = img?.getAttribute("src");
+      return src && src.trim() ? src.trim() : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const looksLikeImageUrl = (s: string) => {
+    const t = s.trim();
+    if (/^data:image\//i.test(t)) return true;
+    if (/^https?:\/\/\S+\.(png|jpe?g|gif|webp|bmp|svg)(\?\S*)?$/i.test(t)) return true;
+    return false;
+  };
+
+  // Fetch a remote/data URL and turn it into a same-origin object URL so the
+  // canvas isn't tainted and toBlob() works on save.
+  const fetchAsObjectUrl = async (src: string): Promise<string> => {
+    if (src.startsWith("blob:") || src.startsWith("data:")) {
+      const r = await fetch(src);
+      const b = await r.blob();
+      return URL.createObjectURL(b);
+    }
+    const r = await fetch(src, { mode: "cors" });
+    if (!r.ok) throw new Error(`Failed to fetch image (${r.status}).`);
+    const b = await r.blob();
+    if (!b.type.startsWith("image/")) throw new Error("Clipboard URL is not an image.");
+    return URL.createObjectURL(b);
+  };
+
+  const pasteImageFromSrc = async (src: string) => {
+    if (!canvasRef.current) return;
+    const objUrl = await fetchAsObjectUrl(src);
+    try {
+      await canvasRef.current.pasteImage(objUrl);
+    } finally {
+      URL.revokeObjectURL(objUrl);
+    }
+  };
+
   // Handle Cmd/Ctrl+V (or iPad paste menu) anywhere on the page.
   useEffect(() => {
     const onPaste = async (e: ClipboardEvent) => {
@@ -208,11 +252,13 @@ function IpadPage() {
         return;
       }
       if (!canvasRef.current) return;
-      const items = e.clipboardData?.items;
-      if (!items || items.length === 0) return;
+      const cd = e.clipboardData;
+      const items = cd?.items;
+      if (!cd || !items || items.length === 0) return;
       e.preventDefault();
       setPasteError(null);
       try {
+        // 1. Direct image bytes on the clipboard
         for (const item of Array.from(items)) {
           if (item.type.startsWith("image/")) {
             const file = item.getAsFile();
@@ -224,7 +270,23 @@ function IpadPage() {
             return;
           }
         }
-        const text = e.clipboardData?.getData("text/plain");
+        // 2. HTML payload (common when copying an image from a webpage)
+        const html = cd.getData("text/html");
+        if (html) {
+          const src = extractImageUrlFromHtml(html);
+          if (src) {
+            await pasteImageFromSrc(src);
+            flashPasteOk();
+            return;
+          }
+        }
+        // 3. Plain text — could be an image URL, otherwise paste as text
+        const text = cd.getData("text/plain");
+        if (text && looksLikeImageUrl(text)) {
+          await pasteImageFromSrc(text);
+          flashPasteOk();
+          return;
+        }
         if (text && text.trim()) {
           canvasRef.current.pasteText(text);
           flashPasteOk();
@@ -236,6 +298,37 @@ function IpadPage() {
     };
     document.addEventListener("paste", onPaste);
     return () => document.removeEventListener("paste", onPaste);
+  }, []);
+
+  // Drag & drop image files onto the page.
+  useEffect(() => {
+    const onDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes("Files")) e.preventDefault();
+    };
+    const onDrop = async (e: DragEvent) => {
+      if (!canvasRef.current) return;
+      const files = e.dataTransfer?.files;
+      if (!files || files.length === 0) return;
+      const file = Array.from(files).find((f) => f.type.startsWith("image/"));
+      if (!file) return;
+      e.preventDefault();
+      setPasteError(null);
+      try {
+        const url = URL.createObjectURL(file);
+        await canvasRef.current.pasteImage(url);
+        URL.revokeObjectURL(url);
+        flashPasteOk();
+      } catch (err) {
+        console.error(err);
+        setPasteError(err instanceof Error ? err.message : "Failed to add image.");
+      }
+    };
+    document.addEventListener("dragover", onDragOver);
+    document.addEventListener("drop", onDrop);
+    return () => {
+      document.removeEventListener("dragover", onDragOver);
+      document.removeEventListener("drop", onDrop);
+    };
   }, []);
 
   // Toolbar button: read clipboard via the async API (needed on iPad / touch
@@ -256,9 +349,24 @@ function IpadPage() {
             flashPasteOk();
             return;
           }
+          if (item.types.includes("text/html")) {
+            const blob = await item.getType("text/html");
+            const html = await blob.text();
+            const src = extractImageUrlFromHtml(html);
+            if (src) {
+              await pasteImageFromSrc(src);
+              flashPasteOk();
+              return;
+            }
+          }
         }
       }
       const text = await navigator.clipboard.readText();
+      if (text && looksLikeImageUrl(text)) {
+        await pasteImageFromSrc(text);
+        flashPasteOk();
+        return;
+      }
       if (text && text.trim()) {
         canvasRef.current.pasteText(text);
         flashPasteOk();
@@ -268,7 +376,9 @@ function IpadPage() {
     } catch (err) {
       console.error(err);
       setPasteError(
-        "Couldn't read the clipboard. Try Cmd/Ctrl+V instead, or grant clipboard permission.",
+        err instanceof Error && err.message.startsWith("Failed to fetch image")
+          ? err.message + " The source site may block cross-origin downloads — try right-click → Copy Image instead of Copy Link."
+          : "Couldn't read the clipboard. Try Cmd/Ctrl+V instead, or grant clipboard permission.",
       );
     }
   };
