@@ -21,6 +21,7 @@ import {
   PenLine,
   Mic,
   Camera,
+  ImagePlus,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
