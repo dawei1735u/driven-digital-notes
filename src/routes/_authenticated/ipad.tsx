@@ -1105,6 +1105,16 @@ function IpadPage() {
               >
                 <ClipboardPaste className="h-5 w-5" /> Paste
               </button>
+              <button
+                onClick={() => {
+                  const text = window.prompt("Type the text to add to the note:");
+                  if (text && text.trim()) canvasRef.current?.pasteText(text);
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-input bg-card px-5 py-3 text-base font-semibold shadow-sm hover:bg-accent"
+                title="Type text and drop it onto the canvas (works alongside pasted images and ink)"
+              >
+                <Type className="h-5 w-5" /> Add text
+              </button>
 
               <div className="inline-flex items-stretch gap-2 rounded-xl border border-input bg-card px-2 py-1 shadow-sm">
                 <div className="inline-flex items-center gap-2 pl-1 text-muted-foreground">
