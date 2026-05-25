@@ -1,11 +1,27 @@
 import { createFileRoute, Link, ClientOnly, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import {
-  HandwritingCanvas,
-  type HandwritingCanvasHandle,
-} from "@/components/HandwritingCanvas";
+import { HandwritingCanvas, type HandwritingCanvasHandle } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste, Youtube, Type, PenLine, Mic, Camera } from "lucide-react";
+import {
+  ArrowLeft,
+  Eraser,
+  Save,
+  CheckCircle2,
+  LogOut,
+  Pencil,
+  Pen,
+  Trash2,
+  Plus,
+  List,
+  ListOrdered,
+  RotateCcw,
+  ClipboardPaste,
+  Youtube,
+  Type,
+  PenLine,
+  Mic,
+  Camera,
+} from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
 import { transcribeAudio } from "@/lib/voice.functions";
@@ -30,21 +46,17 @@ export const Route = createFileRoute("/_authenticated/ipad")({
         name: "description",
         content: "Write a handwritten task on iPad.",
       },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      },
     ],
   }),
   component: IpadPage,
 });
 
 const SHIFTS = ["Morning", "Afternoon", "Evening", "Overnight"];
-const CATEGORIES = [
-  "Package",
-  "Maintenance",
-  "Visitor",
-  "Security",
-  "Resident Request",
-  "Other",
-];
+const CATEGORIES = ["Package", "Maintenance", "Visitor", "Security", "Resident Request", "Other"];
 
 /** Render typed text to a sticky-note PNG matching the handwriting canvas style. */
 async function renderTypedNoteToBlob(text: string): Promise<Blob | null> {
@@ -61,7 +73,10 @@ async function renderTypedNoteToBlob(text: string): Promise<Blob | null> {
   const maxWidth = w - marginX * 2;
   const lines: string[] = [];
   for (const para of text.replace(/\r\n/g, "\n").split("\n")) {
-    if (!para.trim()) { lines.push(""); continue; }
+    if (!para.trim()) {
+      lines.push("");
+      continue;
+    }
     const words = para.split(/\s+/);
     let current = "";
     for (const word of words) {
@@ -97,7 +112,6 @@ async function renderTypedNoteToBlob(text: string): Promise<Blob | null> {
 }
 
 function IpadPage() {
-
   const canvasRef = useRef<HandwritingCanvasHandle>(null);
   const navigate = useNavigate();
   const { edit: editId, mode: initialMode } = useSearch({ from: "/_authenticated/ipad" });
@@ -134,7 +148,9 @@ function IpadPage() {
         // non-fatal; insert will fail RLS if truly broken
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [fetchWorkspace]);
   const typedRef = useRef<HTMLTextAreaElement>(null);
   const noteWrapRef = useRef<HTMLDivElement>(null);
@@ -283,8 +299,14 @@ function IpadPage() {
       const html = cd.getData("text/html");
       const htmlImageSrc = html ? extractImageUrlFromHtml(html) : null;
       const text = cd.getData("text/plain");
-      const pastedImageLike = Boolean(directImageItem || htmlImageSrc || (text && looksLikeImageUrl(text)));
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) && !pastedImageLike) {
+      const pastedImageLike = Boolean(
+        directImageItem || htmlImageSrc || (text && looksLikeImageUrl(text)),
+      );
+      if (
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) &&
+        !pastedImageLike
+      ) {
         return;
       }
       e.preventDefault();
@@ -404,7 +426,8 @@ function IpadPage() {
       console.error(err);
       setPasteError(
         err instanceof Error && err.message.startsWith("Failed to fetch image")
-          ? err.message + " The source site may block cross-origin downloads — try right-click → Copy Image instead of Copy Link."
+          ? err.message +
+              " The source site may block cross-origin downloads — try right-click → Copy Image instead of Copy Link."
           : "Couldn't read the clipboard. Try Cmd/Ctrl+V instead, or grant clipboard permission.",
       );
     }
@@ -435,10 +458,7 @@ function IpadPage() {
     } catch (err) {
       setPhotoActive(false);
       toast.error("Couldn't open the camera", {
-        description:
-          err instanceof Error
-            ? err.message
-            : "Your browser blocked the camera picker.",
+        description: err instanceof Error ? err.message : "Your browser blocked the camera picker.",
         action: { label: "Retry", onClick: () => openCamera() },
       });
       return;
@@ -449,8 +469,7 @@ function IpadPage() {
     photoTimerRef.current = window.setTimeout(() => {
       setPhotoActive(false);
       toast.error("Camera didn't open", {
-        description:
-          "Allow camera access in your browser settings, then try again.",
+        description: "Allow camera access in your browser settings, then try again.",
         action: { label: "Retry", onClick: () => openCamera() },
         duration: 8000,
       });
@@ -481,7 +500,6 @@ function IpadPage() {
       });
     }
   };
-
 
   const isEdit = !!editId;
 
@@ -634,8 +652,8 @@ function IpadPage() {
         const ext = recording.mimeType.includes("mp4")
           ? "m4a"
           : recording.mimeType.includes("wav")
-          ? "wav"
-          : "webm";
+            ? "wav"
+            : "webm";
         const aTs = Date.now();
         const aRand = Math.random().toString(36).slice(2, 10);
         const wsFolder = workspaceIdRef.current ?? "shared";
@@ -663,13 +681,11 @@ function IpadPage() {
       const wsFolderImg = workspaceIdRef.current ?? "shared";
       const path = `${wsFolderImg}/${ts}-${rand}.png`;
 
-      const { error: upErr } = await supabase.storage
-        .from("note-images")
-        .upload(path, blob, {
-          contentType: "image/png",
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const { error: upErr } = await supabase.storage.from("note-images").upload(path, blob, {
+        contentType: "image/png",
+        cacheControl: "3600",
+        upsert: false,
+      });
       if (upErr) throw upErr;
 
       if (isEdit && editId) {
@@ -806,8 +822,7 @@ function IpadPage() {
                 aria-pressed={photoActive}
                 title="Take a photo and add it to the note"
               >
-                <Camera className="h-4 w-4" />{" "}
-                {photoActive ? "Opening camera…" : "Photo"}
+                <Camera className="h-4 w-4" /> {photoActive ? "Opening camera…" : "Photo"}
               </button>
               <input
                 ref={cameraInputRef}
@@ -890,8 +905,8 @@ function IpadPage() {
                       {recording ? "Voice note captured" : "Record a voice note"}
                     </p>
                     <p className="max-w-md text-sm text-foreground/70">
-                      Tap Record, speak your task, then Stop. Saving will transcribe
-                      it automatically and post it to the board with audio playback.
+                      Tap Record, speak your task, then Stop. Saving will transcribe it
+                      automatically and post it to the board with audio playback.
                     </p>
                   </div>
                   <VoiceRecorder
@@ -905,7 +920,8 @@ function IpadPage() {
             {pendingStamp && (
               <div className="mt-2 flex items-center justify-between rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-medium text-foreground">
                 <span>
-                  {pendingStamp === "bullet" ? "Bullet" : "Number"} mode armed — next tap places a marker.
+                  {pendingStamp === "bullet" ? "Bullet" : "Number"} mode armed — next tap places a
+                  marker.
                 </span>
                 <button
                   onClick={() => {
@@ -1038,8 +1054,6 @@ function IpadPage() {
                 <ClipboardPaste className="h-5 w-5" /> Paste
               </button>
 
-
-
               <div className="inline-flex items-stretch gap-2 rounded-xl border border-input bg-card px-2 py-1 shadow-sm">
                 <div className="inline-flex items-center gap-2 pl-1 text-muted-foreground">
                   <Youtube className="h-5 w-5" />
@@ -1080,10 +1094,10 @@ function IpadPage() {
                 {transcribing
                   ? "Transcribing…"
                   : saving
-                  ? "Saving…"
-                  : isEdit
-                  ? "Save Changes"
-                  : "Save Note"}
+                    ? "Saving…"
+                    : isEdit
+                      ? "Save Changes"
+                      : "Save Note"}
               </button>
             </div>
 
@@ -1115,19 +1129,12 @@ function IpadPage() {
             )}
           </div>
         </div>
-
       </div>
     </main>
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="mb-3 block">
       <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">

@@ -147,10 +147,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
       if (!ctx || !stampPendingRef.current) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const fontPx = 28 * dpr;
-      const text =
-        stampPendingRef.current === "bullet"
-          ? "•"
-          : `${numberCounterRef.current++}.`;
+      const text = stampPendingRef.current === "bullet" ? "•" : `${numberCounterRef.current++}.`;
       ctx.save();
       ctx.fillStyle = colorRef.current;
       ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
@@ -185,8 +182,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         const p = getPos(e);
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         // Min spacing between markers (in canvas px) so drags don't pile up.
-        const minSpacing =
-          (stampPendingRef.current === "bullet" ? 40 : 56) * dpr;
+        const minSpacing = (stampPendingRef.current === "bullet" ? 40 : 56) * dpr;
         const last = lastStampPosRef.current;
         if (!last) {
           placeStamp(p.x, p.y);
@@ -238,7 +234,6 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         /* ignore */
       }
     };
-
 
     useImperativeHandle(ref, () => ({
       clear: () => {
@@ -315,7 +310,10 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
         const paragraphs = text.replace(/\r\n/g, "\n").split("\n");
         const lines: string[] = [];
         for (const para of paragraphs) {
-          if (!para.trim()) { lines.push(""); continue; }
+          if (!para.trim()) {
+            lines.push("");
+            continue;
+          }
           const words = para.split(/\s+/);
           let current = "";
           for (const w of words) {
@@ -395,8 +393,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
           minHeight: baseHeight ? undefined : "300px",
           background: "var(--sticky-yellow)",
           borderRadius: "6px",
-          boxShadow:
-            "0 14px 28px -10px rgba(0,0,0,0.25), 0 6px 12px -6px rgba(0,0,0,0.18)",
+          boxShadow: "0 14px 28px -10px rgba(0,0,0,0.25), 0 6px 12px -6px rgba(0,0,0,0.18)",
           position: "relative",
           userSelect: "none",
           WebkitUserSelect: "none",
