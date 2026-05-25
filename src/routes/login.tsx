@@ -20,6 +20,7 @@ function isEmbeddedPreview() {
 }
 
 export const Route = createFileRoute("/login")({
+  ssr: false,
   validateSearch: (search: Record<string, unknown>) => ({
     reason: typeof search.reason === "string" ? search.reason : undefined,
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
