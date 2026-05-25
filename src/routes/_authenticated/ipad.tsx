@@ -10,6 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
 import { transcribeAudio } from "@/lib/voice.functions";
 import { getMyWorkspaceId } from "@/lib/admin.functions";
+import { fetchClipboardImage } from "@/lib/image-proxy.functions";
 import { VoiceRecorder, blobToBase64, type Recording } from "@/components/VoiceRecorder";
 import { toast } from "sonner";
 
@@ -121,6 +122,7 @@ function IpadPage() {
   const [transcribing, setTranscribing] = useState(false);
   const transcribeFn = useServerFn(transcribeAudio);
   const fetchWorkspace = useServerFn(getMyWorkspaceId);
+  const fetchImageForPaste = useServerFn(fetchClipboardImage);
   const workspaceIdRef = useRef<string | null>(null);
   useEffect(() => {
     let cancelled = false;
@@ -214,9 +216,17 @@ function IpadPage() {
   const looksLikeImageUrl = (s: string) => {
     const t = s.trim();
     if (/^data:image\//i.test(t)) return true;
-    if (/^https?:\/\/\S+\.(png|jpe?g|gif|webp|bmp|svg)(\?\S*)?$/i.test(t)) return true;
+    if (/^https?:\/\/\S+$/i.test(t)) return true;
     return false;
   };
+
+  const blobToDataUrl = (blob: Blob): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Failed to read pasted image."));
+      reader.readAsDataURL(blob);
+    });
 
   // Fetch a remote/data URL and turn it into a same-origin object URL so the
   // canvas isn't tainted and toBlob() works on save.
@@ -226,11 +236,19 @@ function IpadPage() {
       const b = await r.blob();
       return URL.createObjectURL(b);
     }
-    const r = await fetch(src, { mode: "cors" });
-    if (!r.ok) throw new Error(`Failed to fetch image (${r.status}).`);
-    const b = await r.blob();
-    if (!b.type.startsWith("image/")) throw new Error("Clipboard URL is not an image.");
-    return URL.createObjectURL(b);
+    try {
+      const r = await fetch(src, { mode: "cors" });
+      if (!r.ok) throw new Error(`Failed to fetch image (${r.status}).`);
+      const b = await r.blob();
+      if (!b.type.startsWith("image/")) throw new Error("Clipboard URL is not an image.");
+      const dataUrl = await blobToDataUrl(b);
+      const local = await fetch(dataUrl);
+      return URL.createObjectURL(await local.blob());
+    } catch {
+      const { dataUrl } = await fetchImageForPaste({ data: { url: src } });
+      const local = await fetch(dataUrl);
+      return URL.createObjectURL(await local.blob());
+    }
   };
 
   const pasteImageFromSrc = async (src: string) => {
