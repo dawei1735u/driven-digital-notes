@@ -278,7 +278,7 @@ function IpadPage() {
       if (canvasRef.current) return canvasRef.current;
     }
     throw new Error("Couldn't open the handwritten note canvas. Tap Handwrite, then paste again.");
-  }, []);
+  }, [ensureCanvasForPaste, pasteImageFromSrc]);
 
   const pasteImageFromSrc = useCallback(
     async (src: string) => {
@@ -353,7 +353,7 @@ function IpadPage() {
     };
     document.addEventListener("paste", onPaste);
     return () => document.removeEventListener("paste", onPaste);
-  }, []);
+  }, [ensureCanvasForPaste]);
 
   // Drag & drop image files onto the page.
   useEffect(() => {
