@@ -246,26 +246,29 @@ function IpadPage() {
 
   // Fetch a remote/data URL and turn it into a same-origin object URL so the
   // canvas isn't tainted and toBlob() works on save.
-  const fetchAsObjectUrl = useCallback(async (src: string): Promise<string> => {
-    if (src.startsWith("blob:") || src.startsWith("data:")) {
-      const r = await fetch(src);
-      const b = await r.blob();
-      return URL.createObjectURL(b);
-    }
-    try {
-      const r = await fetch(src, { mode: "cors" });
-      if (!r.ok) throw new Error(`Failed to fetch image (${r.status}).`);
-      const b = await r.blob();
-      if (!b.type.startsWith("image/")) throw new Error("Clipboard URL is not an image.");
-      const dataUrl = await blobToDataUrl(b);
-      const local = await fetch(dataUrl);
-      return URL.createObjectURL(await local.blob());
-    } catch {
-      const { dataUrl } = await fetchImageForPaste({ data: { url: src } });
-      const local = await fetch(dataUrl);
-      return URL.createObjectURL(await local.blob());
-    }
-  }, [fetchImageForPaste]);
+  const fetchAsObjectUrl = useCallback(
+    async (src: string): Promise<string> => {
+      if (src.startsWith("blob:") || src.startsWith("data:")) {
+        const r = await fetch(src);
+        const b = await r.blob();
+        return URL.createObjectURL(b);
+      }
+      try {
+        const r = await fetch(src, { mode: "cors" });
+        if (!r.ok) throw new Error(`Failed to fetch image (${r.status}).`);
+        const b = await r.blob();
+        if (!b.type.startsWith("image/")) throw new Error("Clipboard URL is not an image.");
+        const dataUrl = await blobToDataUrl(b);
+        const local = await fetch(dataUrl);
+        return URL.createObjectURL(await local.blob());
+      } catch {
+        const { dataUrl } = await fetchImageForPaste({ data: { url: src } });
+        const local = await fetch(dataUrl);
+        return URL.createObjectURL(await local.blob());
+      }
+    },
+    [fetchImageForPaste],
+  );
 
   const ensureCanvasForPaste = useCallback(async () => {
     if (canvasRef.current) return canvasRef.current;
@@ -277,15 +280,18 @@ function IpadPage() {
     throw new Error("Couldn't open the handwritten note canvas. Tap Handwrite, then paste again.");
   }, []);
 
-  const pasteImageFromSrc = useCallback(async (src: string) => {
-    const canvas = await ensureCanvasForPaste();
-    const objUrl = await fetchAsObjectUrl(src);
-    try {
-      await canvas.pasteImage(objUrl);
-    } finally {
-      URL.revokeObjectURL(objUrl);
-    }
-  }, [ensureCanvasForPaste, fetchAsObjectUrl]);
+  const pasteImageFromSrc = useCallback(
+    async (src: string) => {
+      const canvas = await ensureCanvasForPaste();
+      const objUrl = await fetchAsObjectUrl(src);
+      try {
+        await canvas.pasteImage(objUrl);
+      } finally {
+        URL.revokeObjectURL(objUrl);
+      }
+    },
+    [ensureCanvasForPaste, fetchAsObjectUrl],
+  );
 
   // Handle Cmd/Ctrl+V (or iPad paste menu) anywhere on the page.
   useEffect(() => {
@@ -774,64 +780,64 @@ function IpadPage() {
 
         <div>
           <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
-              <button
-                onClick={() => setMode("handwrite")}
-                className={
-                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
-                  (mode === "handwrite"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent")
-                }
-                aria-pressed={mode === "handwrite"}
-              >
-                <PenLine className="h-4 w-4" /> Handwrite
-              </button>
-              <button
-                onClick={() => setMode("type")}
-                className={
-                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
-                  (mode === "type"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent")
-                }
-                aria-pressed={mode === "type"}
-              >
-                <Type className="h-4 w-4" /> Type
-              </button>
-              <button
-                onClick={() => setMode("voice")}
-                className={
-                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
-                  (mode === "voice"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent")
-                }
-                aria-pressed={mode === "voice"}
-              >
-                <Mic className="h-4 w-4" /> Voice
-              </button>
-              <button
-                onClick={openCamera}
-                className={
-                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition active:scale-95 " +
-                  (photoActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent")
-                }
-                aria-pressed={photoActive}
-                title="Take a photo and add it to the note"
-              >
-                <Camera className="h-4 w-4" /> {photoActive ? "Opening camera…" : "Photo"}
-              </button>
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={onCameraFile}
-                className="hidden"
-                aria-hidden="true"
-              />
+            <button
+              onClick={() => setMode("handwrite")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "handwrite"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "handwrite"}
+            >
+              <PenLine className="h-4 w-4" /> Handwrite
+            </button>
+            <button
+              onClick={() => setMode("type")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "type"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "type"}
+            >
+              <Type className="h-4 w-4" /> Type
+            </button>
+            <button
+              onClick={() => setMode("voice")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "voice"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "voice"}
+            >
+              <Mic className="h-4 w-4" /> Voice
+            </button>
+            <button
+              onClick={openCamera}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition active:scale-95 " +
+                (photoActive
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={photoActive}
+              title="Take a photo and add it to the note"
+            >
+              <Camera className="h-4 w-4" /> {photoActive ? "Opening camera…" : "Photo"}
+            </button>
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={onCameraFile}
+              className="hidden"
+              aria-hidden="true"
+            />
           </div>
           <div>
             <div
