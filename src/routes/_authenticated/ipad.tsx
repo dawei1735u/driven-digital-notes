@@ -251,11 +251,21 @@ function IpadPage() {
     }
   };
 
+  const ensureCanvasForPaste = async () => {
+    if (canvasRef.current) return canvasRef.current;
+    setMode("handwrite");
+    for (let i = 0; i < 30; i++) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      if (canvasRef.current) return canvasRef.current;
+    }
+    throw new Error("Couldn't open the handwritten note canvas. Tap Handwrite, then paste again.");
+  };
+
   const pasteImageFromSrc = async (src: string) => {
-    if (!canvasRef.current) return;
+    const canvas = await ensureCanvasForPaste();
     const objUrl = await fetchAsObjectUrl(src);
     try {
-      await canvasRef.current.pasteImage(objUrl);
+      await canvas.pasteImage(objUrl);
     } finally {
       URL.revokeObjectURL(objUrl);
     }
@@ -269,44 +279,46 @@ function IpadPage() {
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
         return;
       }
-      if (!canvasRef.current) return;
       const cd = e.clipboardData;
       const items = cd?.items;
       if (!cd || !items || items.length === 0) return;
+      const directImageItem = Array.from(items).find((item) => item.type.startsWith("image/"));
+      const html = cd.getData("text/html");
+      const htmlImageSrc = html ? extractImageUrlFromHtml(html) : null;
+      const text = cd.getData("text/plain");
+      const pastedImageLike = Boolean(directImageItem || htmlImageSrc || (text && looksLikeImageUrl(text)));
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) && !pastedImageLike) {
+        return;
+      }
       e.preventDefault();
       setPasteError(null);
       try {
+        const canvas = await ensureCanvasForPaste();
         // 1. Direct image bytes on the clipboard
-        for (const item of Array.from(items)) {
-          if (item.type.startsWith("image/")) {
-            const file = item.getAsFile();
-            if (!file) continue;
+        if (directImageItem) {
+          const file = directImageItem.getAsFile();
+          if (file) {
             const url = URL.createObjectURL(file);
-            await canvasRef.current.pasteImage(url);
+            await canvas.pasteImage(url);
             URL.revokeObjectURL(url);
             flashPasteOk();
             return;
           }
         }
         // 2. HTML payload (common when copying an image from a webpage)
-        const html = cd.getData("text/html");
-        if (html) {
-          const src = extractImageUrlFromHtml(html);
-          if (src) {
-            await pasteImageFromSrc(src);
-            flashPasteOk();
-            return;
-          }
+        if (htmlImageSrc) {
+          await pasteImageFromSrc(htmlImageSrc);
+          flashPasteOk();
+          return;
         }
         // 3. Plain text — could be an image URL, otherwise paste as text
-        const text = cd.getData("text/plain");
         if (text && looksLikeImageUrl(text)) {
           await pasteImageFromSrc(text);
           flashPasteOk();
           return;
         }
         if (text && text.trim()) {
-          canvasRef.current.pasteText(text);
+          canvas.pasteText(text);
           flashPasteOk();
         }
       } catch (err) {
