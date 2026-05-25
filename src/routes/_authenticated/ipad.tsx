@@ -246,7 +246,7 @@ function IpadPage() {
 
   // Fetch a remote/data URL and turn it into a same-origin object URL so the
   // canvas isn't tainted and toBlob() works on save.
-  const fetchAsObjectUrl = async (src: string): Promise<string> => {
+  const fetchAsObjectUrl = useCallback(async (src: string): Promise<string> => {
     if (src.startsWith("blob:") || src.startsWith("data:")) {
       const r = await fetch(src);
       const b = await r.blob();
@@ -265,9 +265,9 @@ function IpadPage() {
       const local = await fetch(dataUrl);
       return URL.createObjectURL(await local.blob());
     }
-  };
+  }, [fetchImageForPaste]);
 
-  const ensureCanvasForPaste = async () => {
+  const ensureCanvasForPaste = useCallback(async () => {
     if (canvasRef.current) return canvasRef.current;
     setMode("handwrite");
     for (let i = 0; i < 30; i++) {
@@ -275,9 +275,9 @@ function IpadPage() {
       if (canvasRef.current) return canvasRef.current;
     }
     throw new Error("Couldn't open the handwritten note canvas. Tap Handwrite, then paste again.");
-  };
+  }, []);
 
-  const pasteImageFromSrc = async (src: string) => {
+  const pasteImageFromSrc = useCallback(async (src: string) => {
     const canvas = await ensureCanvasForPaste();
     const objUrl = await fetchAsObjectUrl(src);
     try {
@@ -285,7 +285,7 @@ function IpadPage() {
     } finally {
       URL.revokeObjectURL(objUrl);
     }
-  };
+  }, [ensureCanvasForPaste, fetchAsObjectUrl]);
 
   // Handle Cmd/Ctrl+V (or iPad paste menu) anywhere on the page.
   useEffect(() => {
