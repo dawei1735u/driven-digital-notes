@@ -278,7 +278,7 @@ function IpadPage() {
       if (canvasRef.current) return canvasRef.current;
     }
     throw new Error("Couldn't open the handwritten note canvas. Tap Handwrite, then paste again.");
-  }, [ensureCanvasForPaste, pasteImageFromSrc]);
+  }, []);
 
   const pasteImageFromSrc = useCallback(
     async (src: string) => {
@@ -353,7 +353,7 @@ function IpadPage() {
     };
     document.addEventListener("paste", onPaste);
     return () => document.removeEventListener("paste", onPaste);
-  }, [ensureCanvasForPaste]);
+  }, [ensureCanvasForPaste, pasteImageFromSrc]);
 
   // Drag & drop image files onto the page.
   useEffect(() => {
@@ -384,7 +384,7 @@ function IpadPage() {
       document.removeEventListener("dragover", onDragOver);
       document.removeEventListener("drop", onDrop);
     };
-  }, []);
+  }, [ensureCanvasForPaste]);
 
   // Toolbar button: read clipboard via the async API (needed on iPad / touch
   // where there's no keyboard shortcut).
