@@ -21,6 +21,7 @@ import {
   PenLine,
   Mic,
   Camera,
+  ImagePlus,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
@@ -507,6 +508,38 @@ function IpadPage() {
     }
   };
 
+  // File picker for adding an existing image (screenshot, photo file) to the
+  // note. Separate from the camera input so desktop users get a normal file
+  // dialog (no `capture` attribute, which forces a camera on mobile).
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const openImagePicker = () => {
+    setPasteError(null);
+    if (mode !== "handwrite") setMode("handwrite");
+    // Wait a frame so the canvas is mounted before the picker resolves.
+    requestAnimationFrame(() => imageInputRef.current?.click());
+  };
+  const onImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setPasteError(null);
+    try {
+      const canvas = await ensureCanvasForPaste();
+      const url = URL.createObjectURL(file);
+      try {
+        await canvas.pasteImage(url);
+        flashPasteOk();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error(err);
+      const msg = err instanceof Error ? err.message : "Failed to add image.";
+      setPasteError(msg);
+      toast.error("Couldn't add the image", { description: msg });
+    }
+  };
+
   const isEdit = !!editId;
 
   const selectTool = (t: "pen" | "eraser") => {
@@ -835,6 +868,21 @@ function IpadPage() {
               accept="image/*"
               capture="environment"
               onChange={onCameraFile}
+              className="hidden"
+              aria-hidden="true"
+            />
+            <button
+              onClick={openImagePicker}
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-accent active:scale-95"
+              title="Add an image file (screenshot, photo) to the note"
+            >
+              <ImagePlus className="h-4 w-4" /> Image
+            </button>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={onImageFile}
               className="hidden"
               aria-hidden="true"
             />
