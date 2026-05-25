@@ -1,15 +1,32 @@
 import { createFileRoute, Link, ClientOnly, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import {
-  HandwritingCanvas,
-  type HandwritingCanvasHandle,
-} from "@/components/HandwritingCanvas";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { HandwritingCanvas, type HandwritingCanvasHandle } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eraser, Save, CheckCircle2, LogOut, Pencil, Pen, Trash2, Plus, List, ListOrdered, RotateCcw, ClipboardPaste, Youtube, Type, PenLine, Mic, Camera } from "lucide-react";
+import {
+  ArrowLeft,
+  Eraser,
+  Save,
+  CheckCircle2,
+  LogOut,
+  Pencil,
+  Pen,
+  Trash2,
+  Plus,
+  List,
+  ListOrdered,
+  RotateCcw,
+  ClipboardPaste,
+  Youtube,
+  Type,
+  PenLine,
+  Mic,
+  Camera,
+} from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
 import { transcribeAudio } from "@/lib/voice.functions";
 import { getMyWorkspaceId } from "@/lib/admin.functions";
+import { fetchClipboardImage } from "@/lib/image-proxy.functions";
 import { VoiceRecorder, blobToBase64, type Recording } from "@/components/VoiceRecorder";
 import { toast } from "sonner";
 
@@ -29,21 +46,17 @@ export const Route = createFileRoute("/_authenticated/ipad")({
         name: "description",
         content: "Write a handwritten task on iPad.",
       },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+      },
     ],
   }),
   component: IpadPage,
 });
 
 const SHIFTS = ["Morning", "Afternoon", "Evening", "Overnight"];
-const CATEGORIES = [
-  "Package",
-  "Maintenance",
-  "Visitor",
-  "Security",
-  "Resident Request",
-  "Other",
-];
+const CATEGORIES = ["Package", "Maintenance", "Visitor", "Security", "Resident Request", "Other"];
 
 /** Render typed text to a sticky-note PNG matching the handwriting canvas style. */
 async function renderTypedNoteToBlob(text: string): Promise<Blob | null> {
@@ -60,7 +73,10 @@ async function renderTypedNoteToBlob(text: string): Promise<Blob | null> {
   const maxWidth = w - marginX * 2;
   const lines: string[] = [];
   for (const para of text.replace(/\r\n/g, "\n").split("\n")) {
-    if (!para.trim()) { lines.push(""); continue; }
+    if (!para.trim()) {
+      lines.push("");
+      continue;
+    }
     const words = para.split(/\s+/);
     let current = "";
     for (const word of words) {
@@ -96,7 +112,6 @@ async function renderTypedNoteToBlob(text: string): Promise<Blob | null> {
 }
 
 function IpadPage() {
-
   const canvasRef = useRef<HandwritingCanvasHandle>(null);
   const navigate = useNavigate();
   const { edit: editId, mode: initialMode } = useSearch({ from: "/_authenticated/ipad" });
@@ -121,6 +136,7 @@ function IpadPage() {
   const [transcribing, setTranscribing] = useState(false);
   const transcribeFn = useServerFn(transcribeAudio);
   const fetchWorkspace = useServerFn(getMyWorkspaceId);
+  const fetchImageForPaste = useServerFn(fetchClipboardImage);
   const workspaceIdRef = useRef<string | null>(null);
   useEffect(() => {
     let cancelled = false;
@@ -132,7 +148,9 @@ function IpadPage() {
         // non-fatal; insert will fail RLS if truly broken
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [fetchWorkspace]);
   const typedRef = useRef<HTMLTextAreaElement>(null);
   const noteWrapRef = useRef<HTMLDivElement>(null);
@@ -214,81 +232,118 @@ function IpadPage() {
   const looksLikeImageUrl = (s: string) => {
     const t = s.trim();
     if (/^data:image\//i.test(t)) return true;
-    if (/^https?:\/\/\S+\.(png|jpe?g|gif|webp|bmp|svg)(\?\S*)?$/i.test(t)) return true;
+    if (/^https?:\/\/\S+$/i.test(t)) return true;
     return false;
   };
 
+  const blobToDataUrl = (blob: Blob): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Failed to read pasted image."));
+      reader.readAsDataURL(blob);
+    });
+
   // Fetch a remote/data URL and turn it into a same-origin object URL so the
   // canvas isn't tainted and toBlob() works on save.
-  const fetchAsObjectUrl = async (src: string): Promise<string> => {
-    if (src.startsWith("blob:") || src.startsWith("data:")) {
-      const r = await fetch(src);
-      const b = await r.blob();
-      return URL.createObjectURL(b);
-    }
-    const r = await fetch(src, { mode: "cors" });
-    if (!r.ok) throw new Error(`Failed to fetch image (${r.status}).`);
-    const b = await r.blob();
-    if (!b.type.startsWith("image/")) throw new Error("Clipboard URL is not an image.");
-    return URL.createObjectURL(b);
-  };
+  const fetchAsObjectUrl = useCallback(
+    async (src: string): Promise<string> => {
+      if (src.startsWith("blob:") || src.startsWith("data:")) {
+        const r = await fetch(src);
+        const b = await r.blob();
+        return URL.createObjectURL(b);
+      }
+      try {
+        const r = await fetch(src, { mode: "cors" });
+        if (!r.ok) throw new Error(`Failed to fetch image (${r.status}).`);
+        const b = await r.blob();
+        if (!b.type.startsWith("image/")) throw new Error("Clipboard URL is not an image.");
+        const dataUrl = await blobToDataUrl(b);
+        const local = await fetch(dataUrl);
+        return URL.createObjectURL(await local.blob());
+      } catch {
+        const { dataUrl } = await fetchImageForPaste({ data: { url: src } });
+        const local = await fetch(dataUrl);
+        return URL.createObjectURL(await local.blob());
+      }
+    },
+    [fetchImageForPaste],
+  );
 
-  const pasteImageFromSrc = async (src: string) => {
-    if (!canvasRef.current) return;
-    const objUrl = await fetchAsObjectUrl(src);
-    try {
-      await canvasRef.current.pasteImage(objUrl);
-    } finally {
-      URL.revokeObjectURL(objUrl);
+  const ensureCanvasForPaste = useCallback(async () => {
+    if (canvasRef.current) return canvasRef.current;
+    setMode("handwrite");
+    for (let i = 0; i < 30; i++) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      if (canvasRef.current) return canvasRef.current;
     }
-  };
+    throw new Error("Couldn't open the handwritten note canvas. Tap Handwrite, then paste again.");
+  }, []);
+
+  const pasteImageFromSrc = useCallback(
+    async (src: string) => {
+      const canvas = await ensureCanvasForPaste();
+      const objUrl = await fetchAsObjectUrl(src);
+      try {
+        await canvas.pasteImage(objUrl);
+      } finally {
+        URL.revokeObjectURL(objUrl);
+      }
+    },
+    [ensureCanvasForPaste, fetchAsObjectUrl],
+  );
 
   // Handle Cmd/Ctrl+V (or iPad paste menu) anywhere on the page.
   useEffect(() => {
     const onPaste = async (e: ClipboardEvent) => {
-      // Don't hijack pasting into form inputs.
+      // Don't hijack text pasting into form inputs, but do accept copied images.
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
-        return;
-      }
-      if (!canvasRef.current) return;
       const cd = e.clipboardData;
       const items = cd?.items;
       if (!cd || !items || items.length === 0) return;
+      const directImageItem = Array.from(items).find((item) => item.type.startsWith("image/"));
+      const html = cd.getData("text/html");
+      const htmlImageSrc = html ? extractImageUrlFromHtml(html) : null;
+      const text = cd.getData("text/plain");
+      const pastedImageLike = Boolean(
+        directImageItem || htmlImageSrc || (text && looksLikeImageUrl(text)),
+      );
+      if (
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) &&
+        !pastedImageLike
+      ) {
+        return;
+      }
       e.preventDefault();
       setPasteError(null);
       try {
+        const canvas = await ensureCanvasForPaste();
         // 1. Direct image bytes on the clipboard
-        for (const item of Array.from(items)) {
-          if (item.type.startsWith("image/")) {
-            const file = item.getAsFile();
-            if (!file) continue;
+        if (directImageItem) {
+          const file = directImageItem.getAsFile();
+          if (file) {
             const url = URL.createObjectURL(file);
-            await canvasRef.current.pasteImage(url);
+            await canvas.pasteImage(url);
             URL.revokeObjectURL(url);
             flashPasteOk();
             return;
           }
         }
         // 2. HTML payload (common when copying an image from a webpage)
-        const html = cd.getData("text/html");
-        if (html) {
-          const src = extractImageUrlFromHtml(html);
-          if (src) {
-            await pasteImageFromSrc(src);
-            flashPasteOk();
-            return;
-          }
+        if (htmlImageSrc) {
+          await pasteImageFromSrc(htmlImageSrc);
+          flashPasteOk();
+          return;
         }
         // 3. Plain text — could be an image URL, otherwise paste as text
-        const text = cd.getData("text/plain");
         if (text && looksLikeImageUrl(text)) {
           await pasteImageFromSrc(text);
           flashPasteOk();
           return;
         }
         if (text && text.trim()) {
-          canvasRef.current.pasteText(text);
+          canvas.pasteText(text);
           flashPasteOk();
         }
       } catch (err) {
@@ -298,7 +353,7 @@ function IpadPage() {
     };
     document.addEventListener("paste", onPaste);
     return () => document.removeEventListener("paste", onPaste);
-  }, []);
+  }, [ensureCanvasForPaste, pasteImageFromSrc]);
 
   // Drag & drop image files onto the page.
   useEffect(() => {
@@ -306,7 +361,6 @@ function IpadPage() {
       if (e.dataTransfer?.types.includes("Files")) e.preventDefault();
     };
     const onDrop = async (e: DragEvent) => {
-      if (!canvasRef.current) return;
       const files = e.dataTransfer?.files;
       if (!files || files.length === 0) return;
       const file = Array.from(files).find((f) => f.type.startsWith("image/"));
@@ -314,8 +368,9 @@ function IpadPage() {
       e.preventDefault();
       setPasteError(null);
       try {
+        const canvas = await ensureCanvasForPaste();
         const url = URL.createObjectURL(file);
-        await canvasRef.current.pasteImage(url);
+        await canvas.pasteImage(url);
         URL.revokeObjectURL(url);
         flashPasteOk();
       } catch (err) {
@@ -329,14 +384,14 @@ function IpadPage() {
       document.removeEventListener("dragover", onDragOver);
       document.removeEventListener("drop", onDrop);
     };
-  }, []);
+  }, [ensureCanvasForPaste]);
 
   // Toolbar button: read clipboard via the async API (needed on iPad / touch
   // where there's no keyboard shortcut).
   const pasteFromClipboard = async () => {
-    if (!canvasRef.current) return;
     setPasteError(null);
     try {
+      const canvas = await ensureCanvasForPaste();
       if (navigator.clipboard && "read" in navigator.clipboard) {
         const items = await navigator.clipboard.read();
         for (const item of items) {
@@ -344,7 +399,7 @@ function IpadPage() {
           if (imgType) {
             const blob = await item.getType(imgType);
             const url = URL.createObjectURL(blob);
-            await canvasRef.current.pasteImage(url);
+            await canvas.pasteImage(url);
             URL.revokeObjectURL(url);
             flashPasteOk();
             return;
@@ -368,7 +423,7 @@ function IpadPage() {
         return;
       }
       if (text && text.trim()) {
-        canvasRef.current.pasteText(text);
+        canvas.pasteText(text);
         flashPasteOk();
       } else {
         setPasteError("Clipboard is empty.");
@@ -377,7 +432,8 @@ function IpadPage() {
       console.error(err);
       setPasteError(
         err instanceof Error && err.message.startsWith("Failed to fetch image")
-          ? err.message + " The source site may block cross-origin downloads — try right-click → Copy Image instead of Copy Link."
+          ? err.message +
+              " The source site may block cross-origin downloads — try right-click → Copy Image instead of Copy Link."
           : "Couldn't read the clipboard. Try Cmd/Ctrl+V instead, or grant clipboard permission.",
       );
     }
@@ -408,10 +464,7 @@ function IpadPage() {
     } catch (err) {
       setPhotoActive(false);
       toast.error("Couldn't open the camera", {
-        description:
-          err instanceof Error
-            ? err.message
-            : "Your browser blocked the camera picker.",
+        description: err instanceof Error ? err.message : "Your browser blocked the camera picker.",
         action: { label: "Retry", onClick: () => openCamera() },
       });
       return;
@@ -422,8 +475,7 @@ function IpadPage() {
     photoTimerRef.current = window.setTimeout(() => {
       setPhotoActive(false);
       toast.error("Camera didn't open", {
-        description:
-          "Allow camera access in your browser settings, then try again.",
+        description: "Allow camera access in your browser settings, then try again.",
         action: { label: "Retry", onClick: () => openCamera() },
         duration: 8000,
       });
@@ -454,7 +506,6 @@ function IpadPage() {
       });
     }
   };
-
 
   const isEdit = !!editId;
 
@@ -607,8 +658,8 @@ function IpadPage() {
         const ext = recording.mimeType.includes("mp4")
           ? "m4a"
           : recording.mimeType.includes("wav")
-          ? "wav"
-          : "webm";
+            ? "wav"
+            : "webm";
         const aTs = Date.now();
         const aRand = Math.random().toString(36).slice(2, 10);
         const wsFolder = workspaceIdRef.current ?? "shared";
@@ -636,13 +687,11 @@ function IpadPage() {
       const wsFolderImg = workspaceIdRef.current ?? "shared";
       const path = `${wsFolderImg}/${ts}-${rand}.png`;
 
-      const { error: upErr } = await supabase.storage
-        .from("note-images")
-        .upload(path, blob, {
-          contentType: "image/png",
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const { error: upErr } = await supabase.storage.from("note-images").upload(path, blob, {
+        contentType: "image/png",
+        cacheControl: "3600",
+        upsert: false,
+      });
       if (upErr) throw upErr;
 
       if (isEdit && editId) {
@@ -730,69 +779,66 @@ function IpadPage() {
         </div>
 
         <div>
-          {true && (
-            <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
-              <button
-                onClick={() => setMode("handwrite")}
-                className={
-                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
-                  (mode === "handwrite"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent")
-                }
-                aria-pressed={mode === "handwrite"}
-              >
-                <PenLine className="h-4 w-4" /> Handwrite
-              </button>
-              <button
-                onClick={() => setMode("type")}
-                className={
-                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
-                  (mode === "type"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent")
-                }
-                aria-pressed={mode === "type"}
-              >
-                <Type className="h-4 w-4" /> Type
-              </button>
-              <button
-                onClick={() => setMode("voice")}
-                className={
-                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
-                  (mode === "voice"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent")
-                }
-                aria-pressed={mode === "voice"}
-              >
-                <Mic className="h-4 w-4" /> Voice
-              </button>
-              <button
-                onClick={openCamera}
-                className={
-                  "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition active:scale-95 " +
-                  (photoActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-accent")
-                }
-                aria-pressed={photoActive}
-                title="Take a photo and add it to the note"
-              >
-                <Camera className="h-4 w-4" />{" "}
-                {photoActive ? "Opening camera…" : "Photo"}
-              </button>
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={onCameraFile}
-                className="hidden"
-                aria-hidden="true"
-              />
-            </div>
-          )}
+          <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
+            <button
+              onClick={() => setMode("handwrite")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "handwrite"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "handwrite"}
+            >
+              <PenLine className="h-4 w-4" /> Handwrite
+            </button>
+            <button
+              onClick={() => setMode("type")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "type"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "type"}
+            >
+              <Type className="h-4 w-4" /> Type
+            </button>
+            <button
+              onClick={() => setMode("voice")}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition " +
+                (mode === "voice"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={mode === "voice"}
+            >
+              <Mic className="h-4 w-4" /> Voice
+            </button>
+            <button
+              onClick={openCamera}
+              className={
+                "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition active:scale-95 " +
+                (photoActive
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent")
+              }
+              aria-pressed={photoActive}
+              title="Take a photo and add it to the note"
+            >
+              <Camera className="h-4 w-4" /> {photoActive ? "Opening camera…" : "Photo"}
+            </button>
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={onCameraFile}
+              className="hidden"
+              aria-hidden="true"
+            />
+          </div>
           <div>
             <div
               ref={noteWrapRef}
@@ -863,8 +909,8 @@ function IpadPage() {
                       {recording ? "Voice note captured" : "Record a voice note"}
                     </p>
                     <p className="max-w-md text-sm text-foreground/70">
-                      Tap Record, speak your task, then Stop. Saving will transcribe
-                      it automatically and post it to the board with audio playback.
+                      Tap Record, speak your task, then Stop. Saving will transcribe it
+                      automatically and post it to the board with audio playback.
                     </p>
                   </div>
                   <VoiceRecorder
@@ -878,7 +924,8 @@ function IpadPage() {
             {pendingStamp && (
               <div className="mt-2 flex items-center justify-between rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-sm font-medium text-foreground">
                 <span>
-                  {pendingStamp === "bullet" ? "Bullet" : "Number"} mode armed — next tap places a marker.
+                  {pendingStamp === "bullet" ? "Bullet" : "Number"} mode armed — next tap places a
+                  marker.
                 </span>
                 <button
                   onClick={() => {
@@ -1011,8 +1058,6 @@ function IpadPage() {
                 <ClipboardPaste className="h-5 w-5" /> Paste
               </button>
 
-
-
               <div className="inline-flex items-stretch gap-2 rounded-xl border border-input bg-card px-2 py-1 shadow-sm">
                 <div className="inline-flex items-center gap-2 pl-1 text-muted-foreground">
                   <Youtube className="h-5 w-5" />
@@ -1053,10 +1098,10 @@ function IpadPage() {
                 {transcribing
                   ? "Transcribing…"
                   : saving
-                  ? "Saving…"
-                  : isEdit
-                  ? "Save Changes"
-                  : "Save Note"}
+                    ? "Saving…"
+                    : isEdit
+                      ? "Save Changes"
+                      : "Save Note"}
               </button>
             </div>
 
@@ -1088,19 +1133,12 @@ function IpadPage() {
             )}
           </div>
         </div>
-
       </div>
     </main>
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="mb-3 block">
       <span className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
