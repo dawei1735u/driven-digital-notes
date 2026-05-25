@@ -274,11 +274,8 @@ function IpadPage() {
   // Handle Cmd/Ctrl+V (or iPad paste menu) anywhere on the page.
   useEffect(() => {
     const onPaste = async (e: ClipboardEvent) => {
-      // Don't hijack pasting into form inputs.
+      // Don't hijack text pasting into form inputs, but do accept copied images.
       const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
-        return;
-      }
       const cd = e.clipboardData;
       const items = cd?.items;
       if (!cd || !items || items.length === 0) return;
@@ -336,7 +333,6 @@ function IpadPage() {
       if (e.dataTransfer?.types.includes("Files")) e.preventDefault();
     };
     const onDrop = async (e: DragEvent) => {
-      if (!canvasRef.current) return;
       const files = e.dataTransfer?.files;
       if (!files || files.length === 0) return;
       const file = Array.from(files).find((f) => f.type.startsWith("image/"));
@@ -344,8 +340,9 @@ function IpadPage() {
       e.preventDefault();
       setPasteError(null);
       try {
+        const canvas = await ensureCanvasForPaste();
         const url = URL.createObjectURL(file);
-        await canvasRef.current.pasteImage(url);
+        await canvas.pasteImage(url);
         URL.revokeObjectURL(url);
         flashPasteOk();
       } catch (err) {
@@ -364,9 +361,9 @@ function IpadPage() {
   // Toolbar button: read clipboard via the async API (needed on iPad / touch
   // where there's no keyboard shortcut).
   const pasteFromClipboard = async () => {
-    if (!canvasRef.current) return;
     setPasteError(null);
     try {
+      const canvas = await ensureCanvasForPaste();
       if (navigator.clipboard && "read" in navigator.clipboard) {
         const items = await navigator.clipboard.read();
         for (const item of items) {
@@ -374,7 +371,7 @@ function IpadPage() {
           if (imgType) {
             const blob = await item.getType(imgType);
             const url = URL.createObjectURL(blob);
-            await canvasRef.current.pasteImage(url);
+            await canvas.pasteImage(url);
             URL.revokeObjectURL(url);
             flashPasteOk();
             return;
@@ -398,7 +395,7 @@ function IpadPage() {
         return;
       }
       if (text && text.trim()) {
-        canvasRef.current.pasteText(text);
+        canvas.pasteText(text);
         flashPasteOk();
       } else {
         setPasteError("Clipboard is empty.");
