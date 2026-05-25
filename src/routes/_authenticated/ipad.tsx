@@ -871,6 +871,21 @@ function IpadPage() {
               className="hidden"
               aria-hidden="true"
             />
+            <button
+              onClick={openImagePicker}
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-accent active:scale-95"
+              title="Add an image file (screenshot, photo) to the note"
+            >
+              <ImagePlus className="h-4 w-4" /> Image
+            </button>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={onImageFile}
+              className="hidden"
+              aria-hidden="true"
+            />
           </div>
           <div>
             <div
