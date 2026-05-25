@@ -1,5 +1,5 @@
 import { createFileRoute, Link, ClientOnly, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HandwritingCanvas, type HandwritingCanvasHandle } from "@/components/HandwritingCanvas";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -773,8 +773,7 @@ function IpadPage() {
         </div>
 
         <div>
-          {true && (
-            <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
+          <div className="mb-3 inline-flex rounded-xl border border-input bg-card p-1 shadow-sm">
               <button
                 onClick={() => setMode("handwrite")}
                 className={
@@ -833,8 +832,7 @@ function IpadPage() {
                 className="hidden"
                 aria-hidden="true"
               />
-            </div>
-          )}
+          </div>
           <div>
             <div
               ref={noteWrapRef}
