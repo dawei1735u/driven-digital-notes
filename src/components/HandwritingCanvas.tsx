@@ -96,6 +96,33 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
       ctx.lineWidth = 3 * dpr;
     };
 
+    const growCanvasToFit = (neededBottom: number, dpr: number) => {
+      const canvas = canvasRef.current;
+      const container = containerRef.current;
+      if (!canvas || !container || neededBottom <= canvas.height) return;
+
+      const currentCssHeight = container.getBoundingClientRect().height;
+      const nextCssHeight = Math.ceil(neededBottom / dpr) + 40;
+      setExtraHeight((h) => h + Math.max(0, nextCssHeight - currentCssHeight));
+
+      const prev = document.createElement("canvas");
+      prev.width = canvas.width;
+      prev.height = canvas.height;
+      prev.getContext("2d")?.drawImage(canvas, 0, 0);
+
+      canvas.height = Math.ceil(nextCssHeight * dpr);
+      canvas.style.height = `${nextCssHeight}px`;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      paintBackground(ctx, canvas.width, canvas.height);
+      ctx.drawImage(prev, 0, 0);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = colorRef.current;
+      ctx.lineWidth = 3 * dpr;
+    };
+
     useEffect(() => {
       resize();
       const ro = new ResizeObserver(resize);
@@ -305,11 +332,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
 
         if (pasteCursorYRef.current < 20 * dpr) pasteCursorYRef.current = 20 * dpr;
         const neededBottom = pasteCursorYRef.current + lines.length * lineHeight + 20 * dpr;
-        if (neededBottom > canvas.height) {
-          // Grow visible area so user can see the pasted content.
-          const cssExtra = Math.ceil((neededBottom - canvas.height) / dpr) + 40;
-          setExtraHeight((h) => h + cssExtra);
-        }
+        growCanvasToFit(neededBottom, dpr);
 
         let y = pasteCursorYRef.current;
         for (const line of lines) {
@@ -336,10 +359,7 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
             const drawH = img.height * scale;
             if (pasteCursorYRef.current < 20 * dpr) pasteCursorYRef.current = 20 * dpr;
             const neededBottom = pasteCursorYRef.current + drawH + 20 * dpr;
-            if (neededBottom > canvas.height) {
-              const cssExtra = Math.ceil((neededBottom - canvas.height) / dpr) + 40;
-              setExtraHeight((h) => h + cssExtra);
-            }
+            growCanvasToFit(neededBottom, dpr);
             ctx.drawImage(img, marginX, pasteCursorYRef.current, drawW, drawH);
             pasteCursorYRef.current += drawH + 12 * dpr;
             dirtyRef.current = true;
