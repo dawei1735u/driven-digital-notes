@@ -263,6 +263,10 @@ function AdminPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 pb-6">
+        <OcrBackfillCard />
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 pb-6">
         <BackupHistoryChart
           data={backupHistory.data}
           loading={backupHistory.isLoading}
