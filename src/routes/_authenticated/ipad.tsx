@@ -743,13 +743,17 @@ function IpadPage() {
           })
           .eq("id", editId);
         if (updErr) throw updErr;
+        if (mode !== "voice") {
+          // Fire-and-forget OCR so the note becomes searchable.
+          void ocrFn({ data: { noteId: editId } }).catch((e) => console.error("OCR failed", e));
+        }
         setSavedAt(Date.now());
         setTimeout(() => {
           setSavedAt(null);
           navigate({ to: "/monitor" });
         }, 1200);
       } else {
-        const { error: insErr } = await supabase.from("notes").insert({
+        const { data: inserted, error: insErr } = await supabase.from("notes").insert({
           written_by: author,
           shift,
           apartment: apartment.trim() || null,
@@ -758,8 +762,11 @@ function IpadPage() {
           audio_url: audioPath,
           transcribed_text: transcript,
           workspace_id: workspaceIdRef.current,
-        });
+        }).select("id").single();
         if (insErr) throw insErr;
+        if (mode !== "voice" && inserted?.id) {
+          void ocrFn({ data: { noteId: inserted.id } }).catch((e) => console.error("OCR failed", e));
+        }
         canvasRef.current?.clear();
         setTypedText("");
         setRecording(null);
