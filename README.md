@@ -29,6 +29,12 @@ Handwritten tasks — written on the iPad with Apple Pencil, instantly visible o
 
 ## Feature highlights
 
+### Board search + OCR everywhere (new in 1.20.0)
+- **Keyword search on `/monitor`.** Toolbar input with a `Search` icon and clear (×) button. Live, case-insensitive, multi-word AND matching across `transcribed_text`, `written_by`, `category`, `apartment`, and `shift`. The `filtered / total` badge updates as you type. When a search is active, results are re-tiled into a fresh grid so matches can never be hidden off-screen by their stored positions; an empty result shows `No notes match "<query>"`.
+- **OCR for every non-voice note.** `src/lib/ocr.functions.ts` exposes `ocrNote` (workspace-scoped) and `ocrBackfillAll` (admin-only). Both pull the PNG from `note-images`, send it to `google/gemini-2.5-flash` via the Lovable AI Gateway with a strict same-language output prompt, and write the result to `notes.transcribed_text`.
+- **Auto-OCR on save.** `/ipad` fires `ocrFn({ noteId })` after both insert and update whenever `mode !== "voice"` (voice notes already have a transcript from audio). Errors are swallowed so the save never blocks on OCR.
+- **Admin backfill.** `/admin` has a **Run backfill** card that calls `ocrBackfillAll` for every note where `transcribed_text` is null or empty, and reports `processed / ok / failed` plus the first few errors. The function bails out early on 429 (rate-limited) or 402 (credits exhausted) so admins can retry later without burning through quota.
+
 ### Delete notes + edit-mode toggle restore (new in 1.19.0)
 - **Delete from the lobby board** — every `NoteCard` on `/monitor` has a trash icon in its header. Tapping it opens an `AlertDialog` confirmation ("This will permanently delete the note and its image. This action cannot be undone.") and, on confirm, deletes the row from Supabase and prunes it from local state.
 - **Delete from the edit dialog** — `EditNoteDialog` adds a destructive **Delete** button in the footer (next to **Redraw on iPad**) guarded by the same confirmation. Lets a doorman clean up while already inspecting a note.

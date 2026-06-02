@@ -6,6 +6,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.20.0] — 2026-06-02 — Search the board + OCR every handwritten note
+
+### Added
+- **Keyword search on `/monitor`.** New search box in the toolbar with a `Search` icon and a clear (×) button. Live, case-insensitive, multi-word AND filtering across `transcribed_text`, `written_by`, `category`, `apartment`, and `shift`. The existing `filtered / total` badge updates automatically.
+- **Auto-tile search results.** When a search is active, results are re-tiled into a fresh grid (saved `position_x` / `position_y` are ignored for that view) so matches are always visible on the board instead of being hidden off-screen by their stored coordinates.
+- **Search empty-state.** When no notes match, the board shows `No notes match "<query>"` instead of a blank canvas.
+- **OCR for handwritten / drawn / photo notes.** New `ocrNote` server function (`src/lib/ocr.functions.ts`) downloads the saved PNG from the `note-images` bucket and sends it to `google/gemini-2.5-flash` via the Lovable AI Gateway with a strict-output system prompt (`Return ONLY the text content as plain text in the SAME LANGUAGE that was written — never translate.`). The extracted text is written back to `notes.transcribed_text` so the new search box can find it.
+- **Auto-OCR on save from `/ipad`.** Any non-voice note (handwrite, type, photo, edit) triggers a fire-and-forget `ocrFn({ noteId })` after the row is inserted/updated. Voice notes skip OCR because their `transcribed_text` already comes from the audio transcript.
+- **Admin backfill.** New `ocrBackfillAll` server function (admin-only, gated by `has_role(_, 'admin')`) iterates over every note with `transcribed_text IS NULL OR ''` and runs OCR on each. A **Run backfill** card on `/admin` reports `processed / ok / failed` and the first few errors; bails out early on AI-gateway rate-limit (429) or credit-exhausted (402) so admins can retry later without burning through quota.
+
+### Fixed
+- Searching for a word that exists only inside a handwritten or drawn note used to return zero hits because the text lived in the image pixels, not in `transcribed_text`. Auto-OCR on save + the one-time admin backfill make every note searchable.
+
+### Files touched
+- `src/lib/ocr.functions.ts` — new `ocrNote` (workspace-scoped) and `ocrBackfillAll` (admin-only) server functions; Gemini 2.5 Flash via the Lovable AI Gateway.
+- `src/routes/_authenticated/ipad.tsx` — `useServerFn(ocrNote)`; fire-and-forget call after both insert and update branches when `mode !== "voice"`.
+- `src/routes/_authenticated/admin.tsx` — new `OcrBackfillCard` with a **Run backfill** button + processed/ok/failed/errors readout.
+- `src/routes/_authenticated/monitor.tsx` — `search` state, toolbar `<input>` with Search/X icons, multi-term AND filter, search-active tile override, search empty-state message.
+
+---
+
 ## [1.19.0] — 2026-05-23 — Delete notes + restore mode toggle in edit
 
 ### Added
