@@ -1,59 +1,31 @@
-# Per-user workspaces
-
 ## Goal
-Let you invite a new user from `/admin` who gets their **own private notes, monitor and iPad** — completely isolated from your doorman board. Your existing 7 doormen continue to share the lobby board exactly as today.
+Add a search box to the Monitor board that filters the visible notes by keyword, matching against each note's transcribed text and metadata.
 
-## Model
+## Scope
+Frontend-only change in `src/routes/_authenticated/monitor.tsx`. No DB/schema changes — `notes.transcribed_text` already stores the text generated from each handwritten/voice note.
 
-Introduce a `workspace_id` concept:
+## UX
+- New search input in the existing top toolbar (next to the date range / size controls), with a search icon and a clear (×) button.
+- Placeholder: "Search notes…"
+- Live filtering as the user types (case-insensitive, trimmed). Debounce not needed at current note volumes.
+- Match against: `transcribed_text`, `written_by`, `category`, `apartment`, `shift`.
+- Multi-word query = AND across whitespace-split terms (e.g. `kitchen leak` matches notes containing both words anywhere across the searched fields).
+- The existing note count badge already shows `filtered / total`, so it will automatically reflect the search result count.
+- When the search yields zero results, show a small "No notes match "<query>"" message on the empty board.
 
-- **Shared workspace** (`workspace_id = NULL`) — your current doormen. All 7 see and edit the same notes. No change for them.
-- **Solo workspace** (`workspace_id = <that user's uuid>`) — each invited "solo" user sees only their own notes.
+## Technical notes
+- Add `const [search, setSearch] = useState("")`.
+- Extend the existing `filtered = notes.filter(...)` block (around line 439) to also apply the keyword filter after the date-range checks. Helper:
+  ```ts
+  const terms = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const haystack = [n.transcribed_text, n.written_by, n.category, n.apartment, n.shift]
+    .filter(Boolean).join(" ").toLowerCase();
+  if (terms.length && !terms.every(t => haystack.includes(t))) return false;
+  ```
+- Keep the `tileAll` / autoLayout behavior unchanged — it already operates on `filtered`, so tiling will lay out only the matching notes.
+- Use existing design tokens for input styling (match the toolbar's current look); reuse `lucide-react`'s `Search` and `X` icons (Search is already imported in other files).
 
-A user's workspace is determined by a new column on `allowed_users`:
-- `workspace = 'shared'` (default) — joins the doorman board
-- `workspace = 'solo'` — gets their own isolated instance
-
-## Database changes (one migration)
-
-1. `allowed_users`: add `workspace text NOT NULL DEFAULT 'shared'` with check `in ('shared','solo')`.
-2. `notes`: add `workspace_id uuid` (nullable — NULL = shared workspace).
-3. Backfill: all existing notes get `workspace_id = NULL` (shared). All existing allowlisted users stay on `workspace='shared'`.
-4. New SECURITY DEFINER fn `get_my_workspace_id()`:
-   - Looks up the caller's row in `allowed_users` by email.
-   - Returns `NULL` if `workspace='shared'`, or `auth.uid()` if `workspace='solo'`.
-5. Rewrite `notes` RLS:
-   - SELECT/INSERT/UPDATE: `workspace_id IS NOT DISTINCT FROM get_my_workspace_id()`
-   - Solo users can only see/write rows where `workspace_id = their uid`. Shared users can only see/write rows where `workspace_id IS NULL`.
-   - DELETE: admin-only (unchanged).
-6. `note-images` and `note-audio` buckets: keep existing allowlist policy (RLS on `notes` is the real gate; the image just sits in storage).
-
-## Code changes
-
-- `src/lib/admin.functions.ts`
-  - `inviteUser` accepts a `workspace: 'shared' | 'solo'` argument.
-  - `listAllowedUsers` returns the workspace value.
-  - New `setUserWorkspace(email, workspace)` so you can flip a user later.
-- `src/routes/_authenticated/admin.tsx`
-  - Invite form gets a **Workspace** select: "Shared doorman board" (default) / "Private (their own instance)".
-  - Roster shows a small badge: `Shared` or `Private`.
-- `src/routes/_authenticated/ipad.tsx`
-  - On note create, set `workspace_id` from a new server fn `getMyWorkspaceId()` (one call, cached per session). Edit path unchanged — RLS filters automatically.
-- `src/routes/_authenticated/monitor.tsx`
-  - No change needed — RLS already scopes the query. Page title shows "Your notes" when the signed-in user is on a solo workspace, "Lobby board" otherwise.
-- `src/routes/index.tsx` (landing)
-  - Solo users land straight on `/ipad` after sign-in (skip the doorman framing). Optional polish; can defer.
-
-## What this does NOT change
-- Your `/monitor`, `/ipad`, `/admin` for the 7 doormen — identical behavior, same shared notes.
-- Auth, Google sign-in, MFA, password reset — all untouched.
-- Existing notes — they stay shared.
-
-## Inviting the new user (your workflow afterwards)
-1. Go to `/admin` → Approved users → enter email → pick **Private (their own instance)** → Invite.
-2. They sign up at `/login` (email+password or Google) with that email.
-3. They land on their own empty `/monitor` and `/ipad`. Nothing of yours is visible to them, nothing of theirs is visible to you.
-
----
-
-Shall I run the migration and ship this?
+## Out of scope
+- iPad capture page (`/ipad`) — it's an input surface, not a browsing surface. Can be added later if requested.
+- Server-side full-text search / Postgres `tsvector` — not needed at current scale; client-side filter over the already-loaded notes is sufficient and instant.
+- Highlighting matched terms inside note images (the note body is an image, not selectable text).
