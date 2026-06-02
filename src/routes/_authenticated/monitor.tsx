@@ -736,6 +736,11 @@ function MonitorPageInner() {
               backgroundSize: "24px 24px",
             }}
           >
+            {searchActive && filtered.length === 0 && (
+              <div className="flex min-h-[40vh] items-center justify-center text-center text-white/60">
+                No notes match "{search}".
+              </div>
+            )}
             {positioned.map((n) => (
               <div
                 key={n.id}
