@@ -137,6 +137,7 @@ function IpadPage() {
   const [recording, setRecording] = useState<Recording | null>(null);
   const [transcribing, setTranscribing] = useState(false);
   const transcribeFn = useServerFn(transcribeAudio);
+  const ocrFn = useServerFn(ocrNote);
   const fetchWorkspace = useServerFn(getMyWorkspaceId);
   const fetchImageForPaste = useServerFn(fetchClipboardImage);
   const workspaceIdRef = useRef<string | null>(null);
