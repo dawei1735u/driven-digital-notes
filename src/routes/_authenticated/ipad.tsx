@@ -26,6 +26,7 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { summarizeYouTube } from "@/lib/youtube.functions";
 import { transcribeAudio } from "@/lib/voice.functions";
+import { ocrNote } from "@/lib/ocr.functions";
 import { getMyWorkspaceId } from "@/lib/admin.functions";
 import { fetchClipboardImage } from "@/lib/image-proxy.functions";
 import { VoiceRecorder, blobToBase64, type Recording } from "@/components/VoiceRecorder";
