@@ -773,3 +773,61 @@ function BackupHistoryChart({
     </div>
   );
 }
+
+function OcrBackfillCard() {
+  const runBackfill = useServerFn(ocrBackfillAll);
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<
+    | { processed: number; ok: number; failed: number; errors: string[] }
+    | null
+  >(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const onRun = async () => {
+    setRunning(true);
+    setError(null);
+    setResult(null);
+    try {
+      const r = await runBackfill();
+      setResult(r);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Backfill failed.");
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-base font-semibold">Search index (OCR backfill)</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Extract text from every note image that doesn't have searchable text yet, so the
+            Monitor search box can find it. Voice notes are already transcribed.
+          </p>
+        </div>
+        <button
+          onClick={onRun}
+          disabled={running}
+          className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {running ? "Running…" : "Run backfill"}
+        </button>
+      </div>
+      {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+      {result && (
+        <div className="mt-3 text-sm text-muted-foreground">
+          Processed {result.processed} notes — {result.ok} succeeded, {result.failed} failed.
+          {result.errors.length > 0 && (
+            <ul className="mt-2 list-disc pl-5 text-xs">
+              {result.errors.map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
