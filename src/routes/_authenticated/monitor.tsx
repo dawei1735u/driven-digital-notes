@@ -113,6 +113,7 @@ function MonitorPageInner() {
   );
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
   const [snapToGrid, setSnapToGrid] = useState<boolean>(false);
   const GRID_SIZE = 24;
   const snap = (v: number) => Math.round(v / GRID_SIZE) * GRID_SIZE;
