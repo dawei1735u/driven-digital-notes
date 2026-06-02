@@ -28,6 +28,7 @@ import {
   claimFirstAdmin,
   getMyAdminContext,
 } from "@/lib/admin.functions";
+import { ocrBackfillAll } from "@/lib/ocr.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
