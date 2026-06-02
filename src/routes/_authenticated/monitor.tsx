@@ -437,10 +437,18 @@ function MonitorPageInner() {
     };
   }, [notes]);
 
+  const searchTerms = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const filtered = notes.filter((n) => {
     const d = (n.display_date ?? "").slice(0, 10);
     if (fromDate && d < fromDate) return false;
     if (toDate && d > toDate) return false;
+    if (searchTerms.length) {
+      const haystack = [n.transcribed_text, n.written_by, n.category, n.apartment, n.shift]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      if (!searchTerms.every((t) => haystack.includes(t))) return false;
+    }
     return true;
   });
 
