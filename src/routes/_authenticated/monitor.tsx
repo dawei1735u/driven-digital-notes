@@ -485,7 +485,16 @@ function MonitorPageInner() {
     );
   }, [filtered, noteSize, boardWidth]);
 
-  const positioned = autoLayout(filtered, noteSize, boardWidth);
+  // When a search is active, re-tile matches into a grid so off-screen notes
+  // are visible. Otherwise respect each note's saved position.
+  const searchActive = searchTerms.length > 0;
+  const positioned = searchActive
+    ? autoLayout(
+        filtered.map((n) => ({ ...n, position_x: null, position_y: null })),
+        noteSize,
+        boardWidth,
+      )
+    : autoLayout(filtered, noteSize, boardWidth);
   const boardHeight = Math.max(
     600,
     ...positioned.map(
