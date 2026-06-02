@@ -8,7 +8,7 @@ import { EditNoteDialog } from "@/components/EditNoteDialog";
 import { ZoomableImage } from "@/components/ZoomableImage";
 import { translateNote } from "@/lib/translate.functions";
 import { toast } from "sonner";
-import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic, LayoutGrid, X, Languages, Loader2 } from "lucide-react";
+import { Minus, Plus, PenLine, Home, Filter, LogOut, Mic, LayoutGrid, X, Languages, Loader2, Search } from "lucide-react";
 
 type Note = Tables<"notes">;
 
