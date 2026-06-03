@@ -615,6 +615,9 @@ function IpadPage() {
       setShift(data.shift ?? SHIFTS[0]);
       setApartment(data.apartment ?? "");
       setCategory(data.category ?? CATEGORIES[0]);
+      // Pre-fill the Type textarea with the note's existing text so the user
+      // can append to it instead of overwriting it when editing in Type mode.
+      setTypedText(data.transcribed_text ?? "");
       // Resolve a signed URL for the existing image and load into canvas
       const path = data.image_url?.startsWith("http")
         ? (data.image_url.match(/\/note-images\/(.+?)(?:\?.*)?$/)?.[1] ?? null)

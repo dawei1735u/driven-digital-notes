@@ -264,6 +264,10 @@ export const HandwritingCanvas = forwardRef<HandwritingCanvasHandle, Props>(
             paintBackground(ctx, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             dirtyRef.current = true;
+            // Park the paste cursor below the loaded artwork so that any
+            // subsequent pasteText / pasteImage call appends instead of
+            // overwriting the existing drawing.
+            pasteCursorYRef.current = canvas.height;
             resolve();
           };
           img.onerror = () => reject(new Error("Failed to load image"));
