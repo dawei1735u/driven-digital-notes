@@ -103,10 +103,14 @@ export const ocrNote = createServerFn({ method: "POST" })
     return ocrOne(data.noteId);
   });
 
-/** Admin-only: backfill OCR text for every note with no transcribed_text yet. */
+/** Admin-only: backfill OCR text for notes. Pass force:true to re-OCR every note. */
 export const ocrBackfillAll = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input) =>
+    z.object({ force: z.boolean().optional() }).optional().parse(input ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const force = data?.force ?? false;
     const { userId } = context;
     const supabase = context.supabase as unknown as {
       rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: boolean | null }>;
@@ -117,11 +121,12 @@ export const ocrBackfillAll = createServerFn({ method: "POST" })
     });
     if (!isAdmin) throw new Error("Admin only.");
 
-    const { data: rows, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("notes")
       .select("id")
-      .or("transcribed_text.is.null,transcribed_text.eq.")
       .order("created_at", { ascending: false });
+    if (!force) query = query.or("transcribed_text.is.null,transcribed_text.eq.");
+    const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
 
     let ok = 0;
@@ -132,7 +137,6 @@ export const ocrBackfillAll = createServerFn({ method: "POST" })
       if (r.error) {
         failed++;
         if (errors.length < 5) errors.push(r.error);
-        // Stop early on rate-limit / credits to avoid burning through.
         if (r.error.includes("Rate limited") || r.error.includes("credits exhausted")) break;
       } else {
         ok++;
