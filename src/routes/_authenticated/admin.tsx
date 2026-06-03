@@ -783,12 +783,13 @@ function OcrBackfillCard() {
   >(null);
   const [error, setError] = useState<string | null>(null);
 
-  const onRun = async () => {
+  const onRun = async (force: boolean) => {
+    if (force && !window.confirm("Re-OCR every note? This will re-extract text on all notes and may use AI credits.")) return;
     setRunning(true);
     setError(null);
     setResult(null);
     try {
-      const r = await runBackfill();
+      const r = await runBackfill({ data: { force } });
       setResult(r);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Backfill failed.");
@@ -803,17 +804,27 @@ function OcrBackfillCard() {
         <div>
           <h2 className="text-base font-semibold">Search index (OCR backfill)</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Extract text from every note image that doesn't have searchable text yet, so the
-            Monitor search box can find it. Voice notes are already transcribed.
+            Extract text from note images so the Monitor search box can find them. "Run backfill"
+            only processes notes with no text yet. "Force re-OCR all" re-extracts text on every
+            note — use this if a keyword search misses a note you know exists.
           </p>
         </div>
-        <button
-          onClick={onRun}
-          disabled={running}
-          className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
-          {running ? "Running…" : "Run backfill"}
-        </button>
+        <div className="flex shrink-0 flex-col gap-2">
+          <button
+            onClick={() => onRun(false)}
+            disabled={running}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {running ? "Running…" : "Run backfill"}
+          </button>
+          <button
+            onClick={() => onRun(true)}
+            disabled={running}
+            className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50"
+          >
+            Force re-OCR all
+          </button>
+        </div>
       </div>
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
       {result && (
