@@ -369,13 +369,13 @@ function IpadPage() {
         }
         // 2. HTML payload (common when copying an image from a webpage)
         if (htmlImageSrc) {
-          await pasteImageFromSrc(htmlImageSrc);
+          await pasteImageOrFallbackToText(htmlImageSrc, text || htmlImageSrc);
           flashPasteOk();
           return;
         }
         // 3. Plain text — could be an image URL, otherwise paste as text
         if (text && looksLikeImageUrl(text)) {
-          await pasteImageFromSrc(text);
+          await pasteImageOrFallbackToText(text, text);
           flashPasteOk();
           return;
         }
