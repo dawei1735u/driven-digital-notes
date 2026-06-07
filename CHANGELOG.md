@@ -6,6 +6,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.20.1] — 2026-06-07 — Paste fallback for blocked image downloads
+
+### Fixed
+- **Pasting a URL that looks like an image but is blocked by the source site (403 / CORS / hotlink protection) no longer shows a raw error banner.** Instead, the link is pasted as plain text and a non-blocking `sonner` toast explains what happened (`"Image couldn't be downloaded — the source site blocked the image (403/CORS). Pasted the link as text instead."`).
+- **Stricter image-URL detection.** `looksLikeImageUrl` now only treats a plain-text paste as an image when the URL path ends in a known image extension (`.png`, `.jpg`, `.gif`, `.webp`, `.bmp`, `.svg`, `.avif`, `.heic`, `.heif`, `.tiff`) or is a `data:image/…` URI. Previously any `https://` URL was accepted, so share links (e.g. `chatgpt.com/share/…`) were incorrectly fetched as images and failed with 403.
+
+### Changed
+- New `pasteImageOrFallbackToText(src, fallbackText?)` helper in `/ipad` (`src/routes/_authenticated/ipad.tsx`). It wraps `pasteImageFromSrc` and catches download failures. If the error message matches 403 / blocked / CORS / "not an image", the canvas pastes the URL (or the provided fallback text) via `pasteText` and surfaces a warning toast. All three image-paste call sites now use this helper:
+  1. HTML clipboard payload (`extractImageUrlFromHtml`)
+  2. Plain-text clipboard that `looksLikeImageUrl`
+  3. Toolbar **Paste** button reading `navigator.clipboard`
+
+### Files touched
+- `src/routes/_authenticated/ipad.tsx` — added `pasteImageOrFallbackToText`, tightened `looksLikeImageUrl`, replaced direct `pasteImageFromSrc` calls at the three paste entry points.
+
+---
+
 ## [1.20.0] — 2026-06-02 — Search the board + OCR every handwritten note
 
 ### Added
