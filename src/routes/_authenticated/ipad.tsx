@@ -455,7 +455,7 @@ function IpadPage() {
       }
       const text = await navigator.clipboard.readText();
       if (text && looksLikeImageUrl(text)) {
-        await pasteImageFromSrc(text);
+        await pasteImageOrFallbackToText(text, text);
         flashPasteOk();
         return;
       }
