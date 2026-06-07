@@ -306,6 +306,30 @@ function IpadPage() {
     [ensureCanvasForPaste, fetchAsObjectUrl],
   );
 
+  // Try to paste an image from a URL; if the download is blocked (403, CORS,
+  // hotlink protection, etc.), fall back to pasting the URL as plain text and
+  // surface a non-blocking toast so the user knows what happened.
+  const pasteImageOrFallbackToText = useCallback(
+    async (src: string, fallbackText?: string): Promise<void> => {
+      try {
+        await pasteImageFromSrc(src);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const blocked =
+          /403|blocked|forbidden|failed to fetch|download failed|not an image|cors/i.test(msg);
+        if (!blocked) throw err;
+        const canvas = await ensureCanvasForPaste();
+        const text = (fallbackText ?? src).trim();
+        if (text) canvas.pasteText(text);
+        toast.warning("Image couldn't be downloaded", {
+          description:
+            "The source site blocked the image (403/CORS). Pasted the link as text instead.",
+        });
+      }
+    },
+    [ensureCanvasForPaste, pasteImageFromSrc],
+  );
+
   // Handle Cmd/Ctrl+V (or iPad paste menu) anywhere on the page.
   useEffect(() => {
     const onPaste = async (e: ClipboardEvent) => {
