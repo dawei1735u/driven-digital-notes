@@ -8,6 +8,32 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.20.1",
+    date: "2026-06-07",
+    title: "Paste fallback for blocked image downloads",
+    sections: [
+      {
+        heading: "Fixed",
+        items: [
+          "Pasting a URL that looks like an image but is blocked by the source site (403 / CORS / hotlink protection) no longer shows a raw error banner. The link is pasted as plain text and a non-blocking sonner toast explains what happened.",
+          "Stricter image-URL detection — looksLikeImageUrl now only accepts URLs with a known image file extension (.png, .jpg, .gif, .webp, .bmp, .svg, .avif, .heic, .heif, .tiff) or data:image/… URIs. Previously any https:// URL was treated as an image, so share links (e.g. chatgpt.com/share/…) were incorrectly fetched and failed with 403.",
+        ],
+      },
+      {
+        heading: "Changed",
+        items: [
+          "New pasteImageOrFallbackToText(src, fallbackText?) helper in /ipad. It wraps pasteImageFromSrc and, on 403/CORS/blocked failures, falls back to pasteText with a warning toast. All three image-paste entry points (HTML clipboard, plain-text image URL, and toolbar Paste button) now use this helper.",
+        ],
+      },
+      {
+        heading: "Files touched",
+        items: [
+          "src/routes/_authenticated/ipad.tsx — added pasteImageOrFallbackToText, tightened looksLikeImageUrl, replaced direct pasteImageFromSrc calls.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.20.0",
     date: "2026-06-02",
     title: "Search the board + OCR every handwritten note",
