@@ -446,7 +446,7 @@ function IpadPage() {
             const html = await blob.text();
             const src = extractImageUrlFromHtml(html);
             if (src) {
-              await pasteImageFromSrc(src);
+              await pasteImageOrFallbackToText(src, src);
               flashPasteOk();
               return;
             }
