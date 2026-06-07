@@ -234,9 +234,19 @@ function IpadPage() {
 
   const looksLikeImageUrl = (s: string) => {
     const t = s.trim();
+    if (/\s/.test(t)) return false;
     if (/^data:image\//i.test(t)) return true;
-    if (/^https?:\/\/\S+$/i.test(t)) return true;
-    return false;
+    if (!/^https?:\/\/\S+$/i.test(t)) return false;
+    // Only treat as an image URL when the path clearly points at an image
+    // file. Otherwise a pasted share link (e.g. chatgpt.com/share/...) would
+    // be downloaded as an image and fail with a 403.
+    try {
+      const url = new URL(t);
+      const path = url.pathname.toLowerCase();
+      return /\.(png|jpe?g|gif|webp|bmp|svg|avif|heic|heif|tiff?)$/.test(path);
+    } catch {
+      return false;
+    }
   };
 
   const blobToDataUrl = (blob: Blob): Promise<string> =>
